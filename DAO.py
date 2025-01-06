@@ -1,4 +1,4 @@
-from Model import CategoryProduct, Product, Stock, Sale, SaleItem, Customer
+from Model import CategoryProduct, Product, Stock, Sale, SaleItem, Customer, Person
 import os
 from ast import literal_eval
 from datetime import datetime
@@ -34,28 +34,28 @@ class CategoryDao(Dao):
     def __init__(self):
         super().create_table(Config.PATH_DB, Config.DB_CATEGORY)
 
-    def save(self, category: CategoryProduct) -> None:
+    def save_category(self, category: CategoryProduct) -> None:
         with open(Config.DB_CATEGORY, 'a') as arq:
             arq.write(category.name + '\n')
         print('Category saved sucessfully')
         
-    def get_all(self) -> list[CategoryProduct]:
+    def get_all_categories(self) -> list[CategoryProduct]:
         with open(Config.DB_CATEGORY, 'r') as arq:
             categories = arq.readlines()
         categories = list(map(lambda x: x.replace('\n', ''), categories))
         categories = FileUtils.read_file(Config.DB_CATEGORY)
         return [CategoryProduct(category) for category in categories]
     
-    def delete(self, name) -> None:
+    def delete_category(self, name) -> None:
         categories = FileUtils.read_file(Config.DB_CATEGORY)
         categories = list(filter(lambda x: x != name, categories))
                 
         with open(Config.DB_CATEGORY, 'w') as arq:
             for category in categories:
-                arq.write(category + '\n')
+                arq.write(category + '\n')        
         print('Category deleted sucessfully')
         
-    def update(self, target_name: str, new_category: CategoryProduct) -> None:
+    def update_category(self, target_name: str, new_category: CategoryProduct) -> None:
         categories = FileUtils.read_file(Config.DB_CATEGORY)
         categories = list(map(lambda x: new_category.name if(x == target_name) else(x), categories))
                 
@@ -64,19 +64,12 @@ class CategoryDao(Dao):
                 arq.write(category + '\n')
         print('Category update sucessfully')
         
-# c1 = CategoryDao()
-# c1.save(CategoryProduct('Cereal'))
-# c1.save(CategoryProduct('Massa'))
-# c1.save(CategoryProduct('Teste'))
-# print(c1.get_all())
-# c1.delete('Cereal')
-# c1.update('Teste', CategoryProduct('Suco'))
 
 class StockDao(Dao):
     def __init__(self):
         super().create_table(Config.PATH_DB, Config.DB_STOCK)
         
-    def save(self, stock: Stock) -> None:
+    def save_stock(self, stock: Stock) -> None:
         with open(Config.DB_STOCK, 'a') as arq:
             arq.write(
                 stock.product.name + '|' +
@@ -87,11 +80,11 @@ class StockDao(Dao):
             arq.write('\n')
         print('Product saved in stock sucessfully')
         
-    def get_all(self) -> list[Stock]:
+    def get_all_stocks(self) -> list[Stock]:
         stocks = FileUtils.read_file(Config.DB_STOCK)
         return list(map(lambda x: Stock(Product(x[0], x[1], x[2]), x[3]), stocks))
         
-    def delete(self, name) -> None:
+    def delete_stock(self, name) -> None:
         stocks = FileUtils.read_file(Config.DB_STOCK)
         stocks = list(filter(lambda x: x[0] != name, stocks))
         
@@ -106,12 +99,12 @@ class StockDao(Dao):
                 arq.write('\n')
         print('Product deleted in stock sucessfully')
     
-    def update(self, current_name, new_stock:Stock) -> None:
+    def update_stock(self, target_name, new_stock:Stock) -> None:
         stocks = FileUtils.read_file(Config.DB_STOCK)
         stocks = list(map(lambda x: [new_stock.product.name,
                                      new_stock.product.category,
                                      str(new_stock.product.price),
-                                     str(new_stock.quantity)] if(x[0] == current_name) else(x), stocks))
+                                     str(new_stock.quantity)] if(x[0] == target_name) else(x), stocks))
 
         with open(Config.DB_STOCK, 'w') as arq:
             for stock in stocks:
@@ -124,18 +117,12 @@ class StockDao(Dao):
                 arq.write('\n')
         print('Product updated in stock sucessfully')
 
-# p = Product('Teste', 'Fruta', 6.59)
-s1 = StockDao()
-# s1.save(Stock(p, 100))
-# print(s1.get_all())
-s1.update('Teste', Stock(Product('Abacaxi', 'Fruta', 8.79), 100))
-# s1.delete('Teste')
 
 class SaleDao(Dao):
     def __init__(self):
         super().create_table(Config.PATH_DB, Config.DB_SALE)
     
-    def save(self, sale: Sale) -> None:
+    def save_sale(self, sale: Sale) -> None:
         with open(Config.DB_SALE, 'a') as arq:
             arq.write(
                 sale.registration + '|' +
@@ -148,7 +135,7 @@ class SaleDao(Dao):
             arq.write('\n')
         print('Sale saved sucessfully')
         
-    def get_all(self) -> list[Sale]:
+    def get_all_sales(self) -> list[Sale]:
         sales = FileUtils.read_file(Config.DB_SALE)
         sales = list(map(lambda x: [x[0], literal_eval(x[1]), x[2], x[3], x[4], x[5]], sales))
         sales = list(map(lambda x: Sale(x[0], 
@@ -159,23 +146,12 @@ class SaleDao(Dao):
                                         float(x[5])), sales))
         return sales
 
-# p1 = Product('Banana', 'Fruta', 2.59)
-# p2 = Product('Morango', 'Fruta', 5.59)
-# p3 = Product('Melancia', 'Fruta', 3.59)
-# si1 = SaleItem(p1, 20)
-# si2 = SaleItem(p2, 20)
-# si3 = SaleItem(p3, 20)
-# s1 = Sale('', [si1, si2, si3], 'Junior Ferreira', 'Larissa Alves', '')
-# sdao = SaleDao()
-# sdao.save(s1)
-# print(sdao.get_all())
-
 
 class CustomerDao(Dao):
     def __init__(self):
         super().create_table(Config.PATH_DB, Config.DB_CUSTOMER)
         
-    def save(self, customer: Customer):
+    def save_customer(self, customer: Customer) -> None:
         with open(Config.DB_CUSTOMER, 'a') as arq:
             arq.write(
                 customer.cpf + '|' +
@@ -185,11 +161,53 @@ class CustomerDao(Dao):
                 customer.address
             )
             arq.write('\n')
+            print('Customer saved sucessfully')
     
-    def get_all(self):
-        customers = FileUtils.read_file()
-        return customers
+    def get_all_customer(self) -> list[Customer]:
+        customers = FileUtils.read_file(Config.DB_CUSTOMER)
+        return list(map(lambda x: Customer(Person(x[0], x[1], x[2]), x[3], x[4]), customers))
+    
+    def delete_customer(self, cpf):
+        customers = FileUtils.read_file(Config.DB_CUSTOMER)
+        customers = list(filter(lambda x: x[0] != cpf, customers))
+        
+        with open(Config.DB_CUSTOMER, 'w') as arq:
+            for customer in customers:
+                arq.write(
+                    customer[0] + '|' +
+                    customer[1] + '|' +
+                    customer[2] + '|' +
+                    customer[3] + '|' +
+                    customer[4]
+                )
+                arq.write('\n')
+        print('Customer deleted sucessfully')
 
-c1 = Customer(cpf='123', name='Junior Ferreira', telephone='8199999')
+    def update_customer(self, target_cpf, new_customer: Customer):
+        customers = FileUtils.read_file(Config.DB_CUSTOMER)
+        customers = list(map(lambda x:
+            [
+                new_customer.cpf,
+                new_customer.name,
+                new_customer.telephone,
+                new_customer.email,
+                new_customer.address
+            ]
+            if(x[0] == target_cpf) else(x), customers
+        ))
+        
+        with open(Config.DB_CUSTOMER, 'w') as arq:
+            for customer in customers:
+                arq.write(
+                    customer[0] + '|' +
+                    customer[1] + '|' +
+                    customer[2] + '|' +
+                    customer[3] + '|' +
+                    customer[4]
+                )
+                arq.write('\n')
+        print('Customer updated sucessfully')
+        
+        
     
     

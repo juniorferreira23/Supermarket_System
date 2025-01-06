@@ -36,3 +36,9 @@ git clone https://github.com/juniorferreira23/Supermarket_System.git
 ```bash
 python3 main.py
 ```
+
+## Tests
+
+```bash
+python3 -m unittest discover tests
+```

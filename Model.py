@@ -40,21 +40,21 @@ class Sale:
 
 
 class Person:
-    def __init__(self, cpf, name, telephone):
+    def __init__(self, cpf: str, name: str, telephone: str):
         self.cpf = cpf
         self.name = name
         self.telephone = telephone
     
 
 class Customer(Person):
-    def __init__(self, cpf: str, name: str, telephone: str, email='', address=''):
-        super().__init__(cpf, name, telephone)
+    def __init__(self, person: Person , email='', address=''):
+        super().__init__(person.cpf, person.name, person.telephone)
         self.email = email
         self.address = address
       
            
 class Employee(Person):
-    def __init__(self, clt: str, position: str, name: str, cpf: str, telephone: str):
-        super().__init__(cpf, name, telephone)
+    def __init__(self, person: Person, clt: str, position: str):
+        super().__init__(person.cpf, person.name, person.telephone)
         self.clt = clt
         self.position = position
