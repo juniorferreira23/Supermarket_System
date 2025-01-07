@@ -272,12 +272,48 @@ class SupplierDao(Dao):
     def __init__(self):
         super().create_table(Config.PATH_DB, Config.DB_SUPPLIER)
         
-    def save_supplier(self, supplier: Supplier):
+    def save_supplier(self, supplier: Supplier) -> None:
         with open(Config.DB_SUPPLIER, 'a') as arq:
             arq.write(
                 supplier.cnpj + '|' +
                 supplier.razao_social + '|' + 
-                supplier.category
+                supplier.category.name
             )
             arq.write('\n')
+        print('Supplier saved sucessfully')
+            
+    def get_all_supplier(self) -> list[Supplier]:
+        suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
+        return list(map(lambda x: Supplier(x[0], x[1], x[2]), suppliers))
+    
+    def delete_supplier(self, cnpj) -> None:
+        suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
+        supplier = list(filter(lambda x: x[0] != cnpj, suppliers))
+        
+        with open(Config.DB_SUPPLIER, 'w') as arq:
+            for supplier in suppliers:
+                arq.write(
+                    supplier[0] + '|' +
+                    supplier[1] + '|' + 
+                    supplier[2]
+                )
+                arq.write('\n')
+        print('Supplier deleted sucessfully')
+        
+    def update_supplier(self, cnpj, new_supplier: Supplier) -> None:
+        suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
+        supplier = list(map(lambda x: [new_supplier.cnpj,
+                                       new_supplier.razao_social,
+                                       new_supplier.category] if(x[0] == cnpj) else(x), suppliers))
+        
+        with open(Config.DB_SUPPLIER, 'w') as arq:
+            for supplier in suppliers:
+                arq.write(
+                    supplier[0] + '|' +
+                    supplier[1] + '|' + 
+                    supplier[2]
+                )
+                arq.write('\n')
+        print('Supplier updated sucessfully')
+    
             
