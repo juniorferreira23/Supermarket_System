@@ -1,6 +1,6 @@
 import unittest
 from DAO import CategoryDao, Config, Dao, FileUtils
-from Model import CategoryProduct
+from Model import Category
 import os
 
 class TestCategoryDao(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestCategoryDao(unittest.TestCase):
             os.remove(Config.DB_CATEGORY)
             
     def test_save_category(self):
-        category = CategoryProduct('Bebida')
+        category = Category('Bebida')
         self.dao.save_category(category)
         
         data = FileUtils.read_file(Config.DB_CATEGORY)
@@ -26,7 +26,7 @@ class TestCategoryDao(unittest.TestCase):
         self.assertEqual(data[0].strip(), category.name)
     
     def test_get_all_categories(self):
-        categories = [CategoryProduct('Fruta'), CategoryProduct('Legume')]
+        categories = [Category('Fruta'), Category('Legume')]
         for category in categories:
             self.dao.save_category(category)
             
@@ -36,7 +36,7 @@ class TestCategoryDao(unittest.TestCase):
         self.assertEqual(retrieved[1].name, categories[1].name)
         
     def test_delete_category(self):
-        categories = [CategoryProduct('Carne'), CategoryProduct('Massa')]
+        categories = [Category('Carne'), Category('Massa')]
         for category in categories:
             self.dao.save_category(category)
         
@@ -47,11 +47,11 @@ class TestCategoryDao(unittest.TestCase):
         self.assertEqual(data[0].strip(), categories[1].name)
         
     def test_update_category(self):
-        categories = [CategoryProduct('Grãos'), CategoryProduct('Frios')]
+        categories = [Category('Grãos'), Category('Frios')]
         for category in categories:
             self.dao.save_category(category)
         
-        new_category = CategoryProduct('Laticínios')
+        new_category = Category('Laticínios')
         self.dao.update_category('Frios', new_category)
         
         data = FileUtils.read_file(Config.DB_CATEGORY)

@@ -1,4 +1,4 @@
-from Model import CategoryProduct, Product, Stock, Sale, SaleItem, Customer, Person
+from Model import Category, Product, Stock, Sale, SaleItem, Customer, Person, Employee, Supplier
 import os
 from ast import literal_eval
 from datetime import datetime
@@ -9,6 +9,8 @@ class Config:
     DB_STOCK = os.path.join(PATH_DB, 'stocks.txt')
     DB_SALE = os.path.join(PATH_DB, 'sales.txt')
     DB_CUSTOMER = os.path.join(PATH_DB, 'customers.txt')
+    DB_EMPLOYEE = os.path.join(PATH_DB, 'employees.txt')
+    DB_SUPPLIER = os.path.join(PATH_DB, 'suppliers.txt')
 
 
 class FileUtils:
@@ -34,17 +36,17 @@ class CategoryDao(Dao):
     def __init__(self):
         super().create_table(Config.PATH_DB, Config.DB_CATEGORY)
 
-    def save_category(self, category: CategoryProduct) -> None:
+    def save_category(self, category: Category) -> None:
         with open(Config.DB_CATEGORY, 'a') as arq:
             arq.write(category.name + '\n')
         print('Category saved sucessfully')
         
-    def get_all_categories(self) -> list[CategoryProduct]:
+    def get_all_categories(self) -> list[Category]:
         with open(Config.DB_CATEGORY, 'r') as arq:
             categories = arq.readlines()
         categories = list(map(lambda x: x.replace('\n', ''), categories))
         categories = FileUtils.read_file(Config.DB_CATEGORY)
-        return [CategoryProduct(category) for category in categories]
+        return [Category(category) for category in categories]
     
     def delete_category(self, name) -> None:
         categories = FileUtils.read_file(Config.DB_CATEGORY)
@@ -55,7 +57,7 @@ class CategoryDao(Dao):
                 arq.write(category + '\n')        
         print('Category deleted sucessfully')
         
-    def update_category(self, target_name: str, new_category: CategoryProduct) -> None:
+    def update_category(self, target_name: str, new_category: Category) -> None:
         categories = FileUtils.read_file(Config.DB_CATEGORY)
         categories = list(map(lambda x: new_category.name if(x == target_name) else(x), categories))
                 
@@ -167,7 +169,7 @@ class CustomerDao(Dao):
         customers = FileUtils.read_file(Config.DB_CUSTOMER)
         return list(map(lambda x: Customer(Person(x[0], x[1], x[2]), x[3], x[4]), customers))
     
-    def delete_customer(self, cpf):
+    def delete_customer(self, cpf) -> None:
         customers = FileUtils.read_file(Config.DB_CUSTOMER)
         customers = list(filter(lambda x: x[0] != cpf, customers))
         
@@ -183,7 +185,7 @@ class CustomerDao(Dao):
                 arq.write('\n')
         print('Customer deleted sucessfully')
 
-    def update_customer(self, target_cpf, new_customer: Customer):
+    def update_customer(self, target_cpf, new_customer: Customer) -> None:
         customers = FileUtils.read_file(Config.DB_CUSTOMER)
         customers = list(map(lambda x:
             [
@@ -209,5 +211,73 @@ class CustomerDao(Dao):
         print('Customer updated sucessfully')
         
         
+class EmployeeDao(Dao):
+    def __init__(self):
+        super().create_table(Config.PATH_DB,Config.DB_EMPLOYEE)
+        
+    def save_employee(self, employee: Employee) -> None:        
+        with open(Config.DB_EMPLOYEE, 'a') as arq:
+            arq.write(
+                employee.cpf + "|" +
+                employee.name + "|" +
+                employee.telephone + "|" +
+                employee.clt + "|" +
+                employee.position 
+            )
+            arq.write('\n')
+        print('Employee saved sucessfully')
+        
+    def get_all_employee(self) -> list[Employee]:
+        employees = FileUtils.read_file(Config.DB_EMPLOYEE)
+        return list(map(lambda x: Employee(Person(x[0], x[1], x[2]), x[3], x[4]), employees))
     
+    def delete_employee(self, clt) -> None:
+        employees = FileUtils.read_file(Config.DB_EMPLOYEE)
+        employees = list(filter(lambda x: x[3] != clt, employees))
+        
+        with open(Config.DB_EMPLOYEE, 'w') as arq:
+            for employee in employees:
+                arq.write(
+                    employee[0] + "|" +
+                    employee[1] + "|" +
+                    employee[2] + "|" +
+                    employee[3] + "|" +
+                    employee[4] 
+                )
+                arq.write('\n')
+        print('Employee deleted sucessfully')
     
+    def update_employee(self, clt, new_employee: Employee) -> None:
+        employees = FileUtils.read_file(Config.DB_EMPLOYEE)
+        employees = list(map(lambda x: [new_employee.name,
+                                        new_employee.cpf,
+                                        new_employee.telephone,
+                                        new_employee.clt,
+                                        new_employee.position] if(x[3] == clt) else(x), employees))
+        
+        with open(Config.DB_EMPLOYEE, 'w') as arq:
+            for employee in employees:
+                arq.write(
+                    employee[0] + "|" +
+                    employee[1] + "|" +
+                    employee[2] + "|" +
+                    employee[3] + "|" +
+                    employee[4] 
+                )
+                arq.write('\n')
+        print('Employee updated sucessfully')
+
+
+class SupplierDao(Dao):
+    def __init__(self):
+        super().create_table(Config.PATH_DB, Config.DB_SUPPLIER)
+        
+    def save_supplier(self, supplier: Supplier):
+        with open(Config.DB_SUPPLIER, 'a') as arq:
+            arq.write(
+                supplier.cnpj + '|' +
+                supplier.razao_social + '|' + 
+                supplier.category
+            )
+            arq.write('\n')
+            

@@ -1,13 +1,13 @@
 from datetime import datetime
 from uuid import uuid4
 
-class CategoryProduct:
+class Category:
     def __init__(self, name: str):
         self.name = name
         
 
 class Product:
-    def __init__(self, name: str, category: CategoryProduct, price: float):
+    def __init__(self, name: str, category: Category, price: float):
         self.name = name
         self.category = category
         self.price = price
@@ -58,3 +58,10 @@ class Employee(Person):
         super().__init__(person.cpf, person.name, person.telephone)
         self.clt = clt
         self.position = position
+        
+
+class Supplier:
+    def __init__(self, cnpj: str, razao_social: str, category: Category):
+        self.cnpj = cnpj
+        self.razao_social = razao_social
+        self.category = category
