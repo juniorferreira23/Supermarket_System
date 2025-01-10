@@ -47,6 +47,17 @@ class TestStockDao(unittest.TestCase):
             f'{stocks[1].product.name}|{stocks[1].product.category}|{stocks[1].product.price}|{stocks[1].quantity}'
         )
         
+    def test_find_by_product(self):
+        stocks = [
+            Stock(Product('Espaguete', 'Massa', 2.49), 100), 
+            Stock(Product('Café', 'Bebida', 2.49), 100)
+        ]
+        for stock in stocks:
+            self.dao.save_stock(stock)
+        data = self.dao.find_by_product(stocks[0].product.name)
+        self.assertEqual(data.product.name, stocks[0].product.name)
+        
+        
     def test_delete_stock(self):
         stocks = [
             Stock(Product('Espaguete', 'Massa', 2.49), 100), 

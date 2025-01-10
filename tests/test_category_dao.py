@@ -7,6 +7,8 @@ class TestCategoryDao(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         Dao.create_table(Config.PATH_DB, Config.DB_CATEGORY)
+        Dao.create_table(Config.PATH_DB, Config.DB_STOCK)
+        Dao.create_table(Config.PATH_DB, Config.DB_SUPPLIER)
         
     def setUp(self):
         with open(Config.DB_CATEGORY, 'w') as arq:
@@ -34,6 +36,14 @@ class TestCategoryDao(unittest.TestCase):
         self.assertEqual(len(retrieved), 2)
         self.assertEqual(retrieved[0].name, categories[0].name)
         self.assertEqual(retrieved[1].name, categories[1].name)
+        
+    def test_find_by_name_category(self):
+        categories = [Category('Fruta'), Category('Legume')]
+        for category in categories:
+            self.dao.save_category(category)
+            
+        retrieved = self.dao.find_by_name(categories[0].name)
+        self.assertEqual(retrieved.name, categories[0].name)
         
     def test_delete_category(self):
         categories = [Category('Carne'), Category('Massa')]

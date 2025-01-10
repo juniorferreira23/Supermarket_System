@@ -39,14 +39,18 @@ class CategoryDao(Dao):
     def save_category(self, category: Category) -> None:
         with open(Config.DB_CATEGORY, 'a') as arq:
             arq.write(category.name + '\n')
-        print('Category saved sucessfully')
         
     def get_all_categories(self) -> list[Category]:
-        with open(Config.DB_CATEGORY, 'r') as arq:
-            categories = arq.readlines()
-        categories = list(map(lambda x: x.replace('\n', ''), categories))
         categories = FileUtils.read_file(Config.DB_CATEGORY)
         return [Category(category) for category in categories]
+    
+    def find_by_name(self, name) -> Category:
+        categories = FileUtils.read_file(Config.DB_CATEGORY)  
+        exist_category = any(category == name for category in categories)
+        if not exist_category:
+            return None
+        category = list(filter(lambda x: x == name, categories))
+        return Category(category[0])
     
     def delete_category(self, name) -> None:
         categories = FileUtils.read_file(Config.DB_CATEGORY)
@@ -54,8 +58,30 @@ class CategoryDao(Dao):
                 
         with open(Config.DB_CATEGORY, 'w') as arq:
             for category in categories:
-                arq.write(category + '\n')        
-        print('Category deleted sucessfully')
+                arq.write(category + '\n')
+        
+        stocks = FileUtils.read_file(Config.DB_STOCK)
+        stocks = list(map(lambda x: [x[0], 'Empty', x[2], x[3]] if(x[1] == name) else(x), stocks))
+        with open(Config.DB_STOCK, 'w') as arq:
+            for stock in stocks:
+                arq.write(
+                    stock[0] + '|' +
+                    stock[1] + '|' +
+                    stock[2] + '|' +
+                    stock[3]
+                )
+                arq.write('\n')
+        
+        suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
+        suppliers = list(map(lambda x: [x[0], x[1], 'Empty'] if(x[2] == name) else(x), suppliers))
+        with open(Config.DB_STOCK, 'w') as arq:
+            for stock in stocks:
+                arq.write(
+                    stock[0] + '|' +
+                    stock[1] + '|' +
+                    stock[2]
+                )
+                arq.write('\n')
         
     def update_category(self, target_name: str, new_category: Category) -> None:
         categories = FileUtils.read_file(Config.DB_CATEGORY)
@@ -63,9 +89,20 @@ class CategoryDao(Dao):
                 
         with open(Config.DB_CATEGORY, 'w') as arq:
             for category in categories:
-                arq.write(category + '\n')
-        print('Category update sucessfully')
-        
+                arq.write(category + '\n')  
+                
+        stocks = FileUtils.read_file(Config.DB_STOCK)
+        stocks = list(map(lambda x: [x[0], new_category, x[2], x[3]] if(x[1] == target_name) else(x), stocks))
+        with open(Config.DB_STOCK, 'w') as arq:
+            for stock in stocks:
+                arq.write(
+                    stock[0] + '|' +
+                    stock[1] + '|' +
+                    stock[2] + '|' +
+                    stock[3]
+                )
+                arq.write('\n')
+
 
 class StockDao(Dao):
     def __init__(self):
@@ -80,11 +117,18 @@ class StockDao(Dao):
                 str(stock.quantity)
             )
             arq.write('\n')
-        print('Product saved in stock sucessfully')
         
     def get_all_stocks(self) -> list[Stock]:
         stocks = FileUtils.read_file(Config.DB_STOCK)
-        return list(map(lambda x: Stock(Product(x[0], x[1], x[2]), x[3]), stocks))
+        return list(map(lambda x: Stock(Product(x[0], x[1], float(x[2])), int(x[3])), stocks))
+    
+    def find_by_product(self, product: str) -> Stock:
+        stocks = FileUtils.read_file(Config.DB_STOCK)
+        exist_product = any(stock[0] == product for stock in stocks)
+        if not exist_product:
+            return None
+        stock = list(filter(lambda x: x[0] == product, stocks))[0]
+        return Stock(Product(stock[0], stock[1], float(stock[2])), int(stock[3]))
         
     def delete_stock(self, name) -> None:
         stocks = FileUtils.read_file(Config.DB_STOCK)
@@ -99,7 +143,6 @@ class StockDao(Dao):
                     stock[3]
                 )
                 arq.write('\n')
-        print('Product deleted in stock sucessfully')
     
     def update_stock(self, target_name, new_stock:Stock) -> None:
         stocks = FileUtils.read_file(Config.DB_STOCK)
@@ -117,8 +160,6 @@ class StockDao(Dao):
                     stock[3]
                 )
                 arq.write('\n')
-        print('Product updated in stock sucessfully')
-
 
 class SaleDao(Dao):
     def __init__(self):
@@ -135,7 +176,6 @@ class SaleDao(Dao):
                 str(sale.total)
             )
             arq.write('\n')
-        print('Sale saved sucessfully')
         
     def get_all_sales(self) -> list[Sale]:
         sales = FileUtils.read_file(Config.DB_SALE)
@@ -163,7 +203,6 @@ class CustomerDao(Dao):
                 customer.address
             )
             arq.write('\n')
-            print('Customer saved sucessfully')
     
     def get_all_customer(self) -> list[Customer]:
         customers = FileUtils.read_file(Config.DB_CUSTOMER)
@@ -183,7 +222,6 @@ class CustomerDao(Dao):
                     customer[4]
                 )
                 arq.write('\n')
-        print('Customer deleted sucessfully')
 
     def update_customer(self, target_cpf, new_customer: Customer) -> None:
         customers = FileUtils.read_file(Config.DB_CUSTOMER)
@@ -207,9 +245,7 @@ class CustomerDao(Dao):
                     customer[3] + '|' +
                     customer[4]
                 )
-                arq.write('\n')
-        print('Customer updated sucessfully')
-        
+                arq.write('\n')        
         
 class EmployeeDao(Dao):
     def __init__(self):
@@ -225,7 +261,6 @@ class EmployeeDao(Dao):
                 employee.position 
             )
             arq.write('\n')
-        print('Employee saved sucessfully')
         
     def get_all_employee(self) -> list[Employee]:
         employees = FileUtils.read_file(Config.DB_EMPLOYEE)
@@ -245,7 +280,6 @@ class EmployeeDao(Dao):
                     employee[4] 
                 )
                 arq.write('\n')
-        print('Employee deleted sucessfully')
     
     def update_employee(self, clt, new_employee: Employee) -> None:
         employees = FileUtils.read_file(Config.DB_EMPLOYEE)
@@ -265,8 +299,6 @@ class EmployeeDao(Dao):
                     employee[4] 
                 )
                 arq.write('\n')
-        print('Employee updated sucessfully')
-
 
 class SupplierDao(Dao):
     def __init__(self):
@@ -280,7 +312,6 @@ class SupplierDao(Dao):
                 supplier.category.name
             )
             arq.write('\n')
-        print('Supplier saved sucessfully')
             
     def get_all_supplier(self) -> list[Supplier]:
         suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
@@ -298,7 +329,6 @@ class SupplierDao(Dao):
                     supplier[2]
                 )
                 arq.write('\n')
-        print('Supplier deleted sucessfully')
         
     def update_supplier(self, cnpj, new_supplier: Supplier) -> None:
         suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
@@ -313,7 +343,5 @@ class SupplierDao(Dao):
                     supplier[1] + '|' + 
                     supplier[2]
                 )
-                arq.write('\n')
-        print('Supplier updated sucessfully')
-    
+                arq.write('\n')    
             
