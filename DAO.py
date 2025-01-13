@@ -35,6 +35,8 @@ class Dao:
 class CategoryDao(Dao):
     def __init__(self):
         super().create_table(Config.PATH_DB, Config.DB_CATEGORY)
+        super().create_table(Config.PATH_DB, Config.DB_STOCK)
+        super().create_table(Config.PATH_DB, Config.DB_SUPPLIER)
 
     def save_category(self, category: Category) -> None:
         with open(Config.DB_CATEGORY, 'a') as arq:
@@ -122,7 +124,7 @@ class StockDao(Dao):
         stocks = FileUtils.read_file(Config.DB_STOCK)
         return list(map(lambda x: Stock(Product(x[0], x[1], float(x[2])), int(x[3])), stocks))
     
-    def find_by_product(self, product: str) -> Stock:
+    def find_by_product(self, product: str) -> Stock|None:
         stocks = FileUtils.read_file(Config.DB_STOCK)
         exist_product = any(stock[0] == product for stock in stocks)
         if not exist_product:
@@ -150,7 +152,6 @@ class StockDao(Dao):
                                      new_stock.product.category,
                                      str(new_stock.product.price),
                                      str(new_stock.quantity)] if(x[0] == target_name) else(x), stocks))
-
         with open(Config.DB_STOCK, 'w') as arq:
             for stock in stocks:
                 arq.write(
@@ -266,6 +267,14 @@ class EmployeeDao(Dao):
         employees = FileUtils.read_file(Config.DB_EMPLOYEE)
         return list(map(lambda x: Employee(Person(x[0], x[1], x[2]), x[3], x[4]), employees))
     
+    def find_by_clt(self, clt) -> Employee:
+        employees = FileUtils.read_file(Config.DB_EMPLOYEE)
+        exist_employee = any(employee[3] == clt for employee in employees)
+        if not exist_employee:
+            return None
+        employee = list(filter(lambda x: x[3 == clt], employees))[0]
+        return Employee(Person(employee[0], employee[1], employee[2]), employee[3], employee[4])
+    
     def delete_employee(self, clt) -> None:
         employees = FileUtils.read_file(Config.DB_EMPLOYEE)
         employees = list(filter(lambda x: x[3] != clt, employees))
@@ -283,8 +292,8 @@ class EmployeeDao(Dao):
     
     def update_employee(self, clt, new_employee: Employee) -> None:
         employees = FileUtils.read_file(Config.DB_EMPLOYEE)
-        employees = list(map(lambda x: [new_employee.name,
-                                        new_employee.cpf,
+        employees = list(map(lambda x: [new_employee.cpf,
+                                        new_employee.name,
                                         new_employee.telephone,
                                         new_employee.clt,
                                         new_employee.position] if(x[3] == clt) else(x), employees))

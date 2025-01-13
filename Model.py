@@ -26,17 +26,13 @@ class SaleItem:
 
 
 class Sale:
-    def __init__(self, registration,  sold_products: list[SaleItem], operator, customer='Not Registered',  date=None, total=None):
+    def __init__(self, sold_products: list[SaleItem], operator, total, registration=None, customer='Not Registered',  date=None):
         self.registration = registration or str(uuid4())
         self.sold_products = sold_products
         self.operator = operator
         self.customer = customer
         self.date = date or datetime.now()
-        self.total = total or self.calculate_total()
-        
-    def calculate_total(self):
-        total = sum(item.product.price * item.quantity for item in self.sold_products)
-        return round(total, 2)
+        self.total = total
 
 
 class Person:
