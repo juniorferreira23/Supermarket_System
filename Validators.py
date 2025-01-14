@@ -31,24 +31,26 @@ def product_validator(name_product, category=None, price=None, quantity=None) ->
     return None
 
 
-def person_validator(cpf, name, telephone=None) -> str|None:
+def person_validator(cpf, name=None, telephone=None) -> str|None:
     if type(cpf) != str:
         return 'Invalid CPF type'
     elif len(cpf) != 11:
         return 'Invalid CPF'
     
-    if type(name) != str:
-        return 'Invalid name type'
-    elif len(name) < 8:
-        return 'Invalid name'
-    elif '' not in name:
-        return 'First and last name required'
+    if name:
+        if type(name) != str:
+            return 'Invalid name type'
+        elif len(name) < 8:
+            return 'Invalid name'
+        elif '' not in name:
+            return 'First and last name required'
 
     if telephone:
         if type(telephone) != str:
             return 'Invalid telephone type'
         if len(telephone) != 11:
             return 'Invalid telephone'
+        
 
 def employee_validator(cpf=None, name=None, telephone=None, clt=None, postion=None) -> str|None:
     if cpf and name:
@@ -66,14 +68,10 @@ def employee_validator(cpf=None, name=None, telephone=None, clt=None, postion=No
     return None
 
 
-def customer_validator(cpf, name, telephone, email=None, address=None):
+def customer_validator(cpf, name=None, telephone=None, email=None, address=None) -> None:
     def email_validator(email):
         regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
         return re.match(regex, email) is not None
-
-    def telephone_validator(telephone):
-        regex = r'^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$'
-        return re.match(regex, telephone) is not None
     
     validator = person_validator(cpf, name, telephone)
     if validator:
@@ -83,8 +81,20 @@ def customer_validator(cpf, name, telephone, email=None, address=None):
             return 'Invalid email type'
         elif not email_validator(email):
             return 'Invalid email'
-    if type(address) != str:
-        return 'Invalid address type'
+    if address:
+        if type(address) != str:
+            return 'Invalid address type'
     
     return None
 
+
+def supplier_validator(cnpj: str, razao_social:str=None, category:Category=None, telephone:str=None) -> str|None:
+    if type(cnpj) != str:
+        print('Invalid CNPJ type')
+        return None
+    elif len(cnpj) != 14:
+        print('Invalid CNPJ')
+        return None
+    
+    if razao_social:
+        ...

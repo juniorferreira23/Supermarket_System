@@ -209,6 +209,14 @@ class CustomerDao(Dao):
         customers = FileUtils.read_file(Config.DB_CUSTOMER)
         return list(map(lambda x: Customer(Person(x[0], x[1], x[2]), x[3], x[4]), customers))
     
+    def find_by_cpf(self, cpf) -> Customer:
+        customers = FileUtils.read_file(Config.DB_CUSTOMER)
+        exist_customer = any(customer[0] == cpf for customer in customers)
+        if not exist_customer:
+            return None
+        customer = list(filter(lambda x: x[0] == cpf, customers))[0]
+        return Customer(Person(customer[0], customer[1], customer[2]), customer[3], customer[4])
+    
     def delete_customer(self, cpf) -> None:
         customers = FileUtils.read_file(Config.DB_CUSTOMER)
         customers = list(filter(lambda x: x[0] != cpf, customers))
@@ -318,13 +326,14 @@ class SupplierDao(Dao):
             arq.write(
                 supplier.cnpj + '|' +
                 supplier.razao_social + '|' + 
-                supplier.category.name
+                supplier.category.name + '|' +
+                supplier.telephone
             )
             arq.write('\n')
             
     def get_all_supplier(self) -> list[Supplier]:
         suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
-        return list(map(lambda x: Supplier(x[0], x[1], x[2]), suppliers))
+        return list(map(lambda x: Supplier(x[0], x[1], x[2], x[3]), suppliers))
     
     def delete_supplier(self, cnpj) -> None:
         suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
@@ -335,7 +344,8 @@ class SupplierDao(Dao):
                 arq.write(
                     supplier[0] + '|' +
                     supplier[1] + '|' + 
-                    supplier[2]
+                    supplier[2] + '|' +
+                    supplier[3]
                 )
                 arq.write('\n')
         
@@ -343,14 +353,16 @@ class SupplierDao(Dao):
         suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
         supplier = list(map(lambda x: [new_supplier.cnpj,
                                        new_supplier.razao_social,
-                                       new_supplier.category] if(x[0] == cnpj) else(x), suppliers))
+                                       new_supplier.category,
+                                       new_supplier.telephone] if(x[0] == cnpj) else(x), suppliers))
         
         with open(Config.DB_SUPPLIER, 'w') as arq:
             for supplier in suppliers:
                 arq.write(
                     supplier[0] + '|' +
                     supplier[1] + '|' + 
-                    supplier[2]
+                    supplier[2] + '|' + 
+                    supplier[3]
                 )
                 arq.write('\n')    
             

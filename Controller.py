@@ -1,5 +1,5 @@
-from Model import Category, Stock, Product, Sale, SaleItem, Employee, Person
-from DAO import CategoryDao, StockDao, SaleDao, EmployeeDao
+from Model import Category, Stock, Product, Sale, SaleItem, Employee, Person, Customer, Supplier
+from DAO import CategoryDao, StockDao, SaleDao, EmployeeDao, CustomerDao, SupplierDao
 import Validators
 
 class CategoryController:
@@ -287,16 +287,16 @@ class EmployeeController:
         self.dao.delete_employee(clt)
         print('Employee removed sucessfully')
     
-    def change_employee(self, clt, new_clt=None, new_name=None, new_cpf=None, new_telephone=None, new_position=None):
-        current_validator = Validators.employee_validator(clt)
-        if current_validator:
-            print(current_validator)
+    def change_employee(self, target_clt, new_cpf=None, new_name=None, new_telephone=None, new_clt=None, new_position=None):
+        target_validator = Validators.employee_validator(target_clt)
+        if target_validator:
+            print(target_validator)
             return None
         new_validator = Validators.employee_validator(new_cpf, new_name, new_telephone, new_clt, new_position)
         if new_validator:
             print(new_validator)
             return None
-        current_employee = self.dao.find_by_clt(clt)
+        current_employee = self.dao.find_by_clt(target_clt)
         if not current_employee:
             print('Employee not found')
             return None
@@ -305,7 +305,7 @@ class EmployeeController:
             print('Employee already registered')
             return None
         
-        self.dao.update_employee(clt, Employee(
+        self.dao.update_employee(target_clt, Employee(
             Person(
                 new_cpf or current_employee.cpf, 
                 new_name or current_employee.name,
@@ -319,9 +319,85 @@ class EmployeeController:
 
 class CustomerController:
     def __init__(self):
-        self.dao = CustomerController()
+        self.dao = CustomerDao()
         
-    def register_customer(self):
-        ...
+    def register_customer(self, cpf: str, name: str, telephone: str, email: str, address: str) -> None:
+        validator = Validators.customer_validator(cpf, name, telephone, email, address)
+        if validator:
+            print(validator)
+            return None
+        exist_customer = self.dao.find_by_cpf(cpf)
+        if exist_customer:
+            print('Customer already registered')
+            return None
+        self.dao.save_customer(Customer(Person(cpf, name, telephone), email, address))
+        print('Customer registered sucessfully')
+        
+    def show_customers(self) -> None:
+        customers = self.dao.get_all_customer()
+        for index, customer in enumerate(customers):
+            print(f'{5*'='} [{index}] {5*'='}')
+            print(
+                f'CPF: {customer.cpf}\n'
+                f'Name: {customer.name}\n'
+                f'telephone: {customer.telephone}\n'
+                f'Email: {customer.email}\n'
+                f'Address: {customer.address}'
+            )
     
+    def remove_customer(self, cpf: str) -> None:
+        validator = Validators.customer_validator(cpf)
+        if validator:
+            print(validator)
+            return None
+        exist_customer = self.dao.find_by_cpf(cpf)
+        if not exist_customer:
+            print('Customer not found')
+            return None
+        self.dao.delete_customer(cpf)
+        print('Customer removed sucessfully')
     
+    def change_customer(self, target_cpf:str, new_cpf:str=None, new_name:str=None, new_telephone:str=None, new_email:str=None, new_address:str=None) -> None:
+        target_cpf_validator = Validators.customer_validator(target_cpf)
+        if target_cpf_validator:
+            print(target_cpf_validator)
+            return None
+        
+        new_customer_validator = Validators.customer_validator(new_cpf or target_cpf, new_name, new_telephone, new_email, new_address)
+        if new_customer_validator:
+            print(new_customer_validator)
+            return None
+        
+        exist_customer = self.dao.find_by_cpf(target_cpf)
+        if not exist_customer:
+            print('Customer not found')
+            return None
+        
+        if new_cpf:
+            exist_new_customer = self.dao.find_by_cpf(new_cpf)
+            if exist_new_customer:
+                print('Customer already registered')
+                return None
+        
+        self.dao.update_customer(
+            target_cpf,
+            Customer(
+                Person(
+                    new_cpf or exist_customer.cpf,
+                    new_name or exist_customer.name,
+                    new_telephone or exist_customer.telephone
+                ), 
+                new_email or exist_customer.email,
+                new_address or exist_customer.address
+            )
+        )
+        print('Customer changed sucessfully')
+        
+        
+class SupplierController:
+    def __init__(self):
+        self.dao = SupplierDao()
+        
+    def register_supplier(self, cnpj: str, razao_social: str, category: str, telephone: str) -> None:
+        validator = Validators.va
+        self.dao.save_supplier(Supplier())
