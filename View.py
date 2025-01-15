@@ -1,4 +1,6 @@
 from Controller import CategoryController, StockController, SaleController, CustomerController, EmployeeController, SupplierController
+from Model import Employee
+from Validators import view_float_validator, view_int_validator
 
 def start_database():
     ...
@@ -7,7 +9,7 @@ def start_database():
 def system_acess() -> bool|None:
     while True:
         print(
-            '[1] Acess the system\n'
+            '\n[1] Acess the system\n'
             '[2] Register employee\n'
             '[3] Logout of the system'
         )
@@ -25,16 +27,14 @@ def system_acess() -> bool|None:
                     print('Unregistered empoloyee\n')
                     continue
                 print(f'{data.name} operator access system')
-                return True
+                return data
             case 2:
-                print('\n')
-                cpf = input('Enter Cpf: ')
+                cpf = input('\nEnter Cpf: ')
                 name = input('Enter Name: ')
                 telephone = input('Enter Telephone: ')
                 clt = input('Enter CLT: ')
                 position = input('Enter position: ')
                 controller.register_employee(cpf , name, telephone, clt, position)
-                print('\n')
             case 3:
                 return None
             
@@ -64,6 +64,7 @@ def category_system():
                 dao.show_categories()
             case 3:
                 category = input('Enter the category you want to remove: ')
+                dao.remove_category(category)
             case 4:
                 category = input('Enter the category you want to change: ')
                 new_categoy = input('Enter new category: ')
@@ -77,10 +78,8 @@ def category_system():
 def stock_system():
     dao = StockController()
     while True:
-        print('')
         print(
-            ''
-            '[1] Register Stock\n'
+            '\n[1] Register Stock\n'
             '[2] Show Stock\n'
             '[3] Remove Stock\n'
             '[4] Change Stock\n'
@@ -96,8 +95,8 @@ def stock_system():
                 print('')
                 product = input('Product Name: ')
                 category = input('Category: ')
-                price = float(input('Price: '))
-                quantity = int(input('Quantity: '))
+                price = view_float_validator('Price: ')
+                quantity = view_int_validator('Quantity: ')
                 dao.register_stock(product, category, price, quantity)
             case 2:
                 dao.show_stock()
@@ -106,10 +105,10 @@ def stock_system():
                 dao.remove_stock(product)
             case 4:
                 target_product = input('Target Product Name: ')
-                new_product = input('New product: ')
-                new_category = input('New category: ')
-                new_price = float(input('New Price: '))
-                new_quantity = int(input('New Quantity: ')) 
+                new_product = input('New product or leave it blank to keep the current data: ')
+                new_category = input('New category or leave it blank to keep the current data: ')
+                new_price = view_float_validator('New Price or leave it blank to keep the current data: ')
+                new_quantity = view_int_validator('New Quantity or leave it blank to keep the current data: ')
                 dao.change_stock(target_product, new_product, new_category, new_price, new_quantity)
             case 5:
                 break
@@ -117,7 +116,46 @@ def stock_system():
                 continue
             
             
-def sale_system():
+def finalize_purchase_system(operator: Employee):
+    dao_customer = CustomerController()
+    dao_sale = SaleController()
+    while True:
+        option = input('Do you want to add the CPF? (Y|N)')
+        if not option:
+            continue
+        match option.upper():
+            case 'Y':
+                print(
+                    '[1] Enter CPF\n'
+                    '[2] Register Customer\n'
+                )
+                cpf_option = input('Select option: ')
+                if not cpf_option:
+                    continue
+                elif cpf_option.isdigit():
+                    cpf_option = int(cpf_option)
+                match cpf_option:
+                    case 1:
+                        customer = input('Enter customer CPF: ')
+                        dao_sale.finish_sale(operator.clt, customer)
+                    case 2:
+                        cpf = input('Enter CPF: ')
+                        name = input('Enter Name: ')
+                        telephone = input('Enter Telephone: ')
+                        email = input('Enter Email: ')
+                        address = input('Enter Address: ')
+                        dao_customer.register_customer(cpf, name, telephone, email, address)
+                        
+                        customer = input('Enter customer CPF: ')
+                        dao_sale.finish_sale(operator.clt, customer)
+            case 'N':
+                dao_sale.finish_sale(operator.clt)
+                break
+            case _:
+                continue
+   
+            
+def sale_system(operator: Employee):
     dao = SaleController()
     while True:
         print('')
@@ -125,9 +163,10 @@ def sale_system():
             ''
             '[1] Register product upon purchase\n'
             '[2] Show products on purchase\n'
-            '[3] Remove product upon purchase\n'
-            '[4] Change product quantity when puchasing\n'
-            '[5] Back'
+            '[3] Finalize product purchase\n'
+            '[4] Remove product upon purchase\n'
+            '[5] Change product quantity when puchasing\n'
+            '[6] Back'
         )
         option = input('Select option: ')
         if not option:
@@ -137,18 +176,20 @@ def sale_system():
         match option:
             case 1:
                 product = input('Enter product: ')
-                quantity = int(input('Enter quantity: '))
+                quantity = view_int_validator('Enter quantity: ')
                 dao.register_sale(product, quantity)
             case 2:
                 dao.show_sale()
             case 3:
-                product = input('Enter product: ')
-                dao.remove_product_sale(product)
+                finalize_purchase_system(operator)               
             case 4:
                 product = input('Enter product: ')
-                new_quantity = int(input('Enter new quantity: '))
-                dao.change_product_sale(product, new_quantity)
+                dao.remove_product_sale(product)
             case 5:
+                product = input('Enter product: ')
+                new_quantity = view_int_validator('Enter new quantity: ')
+                dao.change_product_sale(product, new_quantity)
+            case 6:
                 break
             case _:
                 continue
@@ -186,11 +227,11 @@ def customer_system():
                 dao.remove_customer(cpf)
             case 4:
                 cpf = input('Enter CPF: ')
-                new_cpf = input('Enter new CPF or empty: ')
-                new_name = input('Enter new Name or empty: ')
-                new_telephone = input('Enter new Telephone or empty: ')
-                new_email = input('Enter new Email or empty: ')
-                new_address = input('Enter new Address or empty: ')
+                new_cpf = input('Enter new CPF or leave it blank to keep the current data: ')
+                new_name = input('Enter new Name or leave it blank to keep the current data: ')
+                new_telephone = input('Enter new Telephone or leave it blank to keep the current data: ')
+                new_email = input('Enter new Email or leave it blank to keep the current data: ')
+                new_address = input('Enter new Address or leave it blank to keep the current data: ')
                 dao.change_customer(cpf, new_cpf, new_name, new_telephone, new_email, new_address)
             case 5:
                 break
@@ -231,11 +272,11 @@ def employee_system():
                 dao.remove_employee(clt)
             case 4:
                 clt = input('Enter CLT: ')
-                new_cpf = input('Enter new CPF: ')
-                new_name = input('Enter new Name: ')
-                new_telephone = input('Enter new Telephone: ')
-                new_clt = input('Enter new CLT: ')
-                new_position = input('Enter new Position: ')
+                new_cpf = input('Enter new CPF or leave it blank to keep the current data:: ')
+                new_name = input('Enter new Name or leave it blank to keep the current data:: ')
+                new_telephone = input('Enter new Telephone or leave it blank to keep the current data:: ')
+                new_clt = input('Enter new CLT or leave it blank to keep the current data:: ')
+                new_position = input('Enter new Position or leave it blank to keep the current data:: ')
                 dao.change_employee(clt, new_cpf, new_name, new_telephone, new_clt, new_position)
             case 5:
                 break
@@ -274,10 +315,10 @@ def supplier_system():
                 dao.remove_supplier(cnpj)
             case 4:
                 target_cnpj = input('Enter CNPJ: ')
-                new_cnpj = input('Enter CNPJ: ')
-                new_company_name = input('Enter Company Name: ')
-                new_category = input('Enter Category: ')
-                new_telephone = input('Enter Telephone: ')
+                new_cnpj = input('Enter new CNPJ or leave it blank to keep the current data: ')
+                new_company_name = input('Enter new Company Name or leave it blank to keep the current data: ')
+                new_category = input('Enter new Category or leave it blank to keep the current data: ')
+                new_telephone = input('Enter new Telephone or leave it blank to keep the current data: ')
                 dao.change_supplier(target_cnpj, new_cnpj, new_company_name, new_category, new_telephone)
             case 5:
                 break
@@ -311,7 +352,7 @@ def report_system():
                 continue
                 
 
-def main_system():
+def main_system(operator: Employee):
     while True:
         print('')
         print(
@@ -333,7 +374,7 @@ def main_system():
             case 2:
                 stock_system()
             case 3:
-                sale_system()
+                sale_system(operator)
             case 4:
                 customer_system()
             case 5:
@@ -349,8 +390,9 @@ def main_system():
         
 
 def main():
-    if system_acess():
-        main_system()
+    operator = system_acess()
+    if operator:
+        main_system(operator)
         
             
         

@@ -280,7 +280,7 @@ class EmployeeDao(Dao):
         exist_employee = any(employee[3] == clt for employee in employees)
         if not exist_employee:
             return None
-        employee = list(filter(lambda x: x[3 == clt], employees))[0]
+        employee = list(filter(lambda x: x[3] == clt, employees))[0]
         return Employee(Person(employee[0], employee[1], employee[2]), employee[3], employee[4])
     
     def delete_employee(self, clt) -> None:
@@ -361,7 +361,7 @@ class SupplierDao(Dao):
         suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
         supplier = list(map(lambda x: [new_supplier.cnpj,
                                        new_supplier.company_name,
-                                       new_supplier.category,
+                                       new_supplier.category.name,
                                        new_supplier.telephone] if(x[0] == cnpj) else(x), suppliers))
         
         with open(Config.DB_SUPPLIER, 'w') as arq:

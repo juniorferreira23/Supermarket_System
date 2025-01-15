@@ -102,10 +102,10 @@ class StockController:
         self.dao_stock.delete_stock(name_product)
         print('Stock removed sucessfully')
         
-    def change_stock(self, target_product: str, new_product:str=None, new_category:str=None, new_price:float=None, new_quantity:int=None):
+    def change_stock(self, target_product: str, new_product:str, new_category:str, new_price:float, new_quantity:int):
         target_validator = Validators.name_product_validator(target_product)
         if target_validator:
-            print(f'The value of change {target_product}')
+            print(target_validator)
             return None
         
         exist_curret_product = self.dao_stock.find_by_product(target_product)
@@ -119,28 +119,29 @@ class StockController:
             new_price or exist_curret_product.product.price,
             new_quantity or exist_curret_product.quantity
         )
-        
         if new_validator:
-            print(f'The new change value {target_product}')
+            print(new_validator)
             return None
         
-        exist_new_product = self.dao_stock.find_by_product(new_product)
-        if exist_new_product:
-            print('Stock already registered')
-            return None
+        if new_product:
+            exist_new_product = self.dao_stock.find_by_product(new_product)
+            if exist_new_product:
+                print('Stock already registered')
+                return None
         
-        exist_category = self.dao_category.find_by_name(new_category)
-        if not exist_category:
-            print('Category not found')
-            return None
-    
+        if new_category:
+            exist_category = self.dao_category.find_by_name(new_category)
+            if not exist_category:
+                print('Category not found')
+                return None
+        
         self.dao_stock.update_stock(target_product, Stock(
             Product(
-                new_product,
-                new_category,
-                new_price
+                new_product or exist_curret_product.product.name,
+                new_category or exist_curret_product.product.category,
+                new_price or exist_curret_product.product.price
             ),
-            new_quantity
+            new_quantity or exist_curret_product.quantity
         ))
         print('Stock changed sucessfully')
 
@@ -174,7 +175,6 @@ class SaleController:
         self.calculate_total()
         print(f'Current value sale [{self.total}]')
         
-        
     def show_sale(self):
         for index, product in enumerate(self.list_product):
             print(f'{5*'='} [{index}] {5*'='}')
@@ -184,15 +184,32 @@ class SaleController:
                 f'Quantity: {product.quantity}'
             )
             
-    def finish_sale(self, operator: str, customer: str):
-        validator = Validators.name_validator(operator)
+    def finish_sale(self, operator: str, customer: str=None):
+        validator = Validators.clt_validator(operator)
         if validator:
             print(validator)
             return None
-        validator = Validators.name_validator(customer)
-        if validator:
-            print(validator)
+        
+        dao_employee = EmployeeDao()
+        exist_operator = dao_employee.find_by_clt(operator)
+        if not exist_operator:
+            print('Operator not found')
             return None
+        
+        if customer:
+            validator = Validators.cpf_validator(customer)
+            if validator:
+                print(validator)
+                return None
+
+            dao_customer = CustomerDao()
+            exist_customer = dao_customer.find_by_cpf(customer)
+            if not exist_customer:
+                print('Customer not found')
+                return None
+        else:
+            customer = 'Empty'
+        
         
         self.dao_sale.save_sale(Sale(
             sold_products=self.list_product, operator=operator, customer=customer, total=self.total
@@ -226,6 +243,10 @@ class SaleController:
         print('Product removed sucessfully')
         
     def change_product_sale(self, name_product: str, new_quantity: str):
+        validator = Validators.name_product_validator(name_product)
+        if validator:
+            print(validator)
+            return None
         if not self.list_product:
             print('The product list is empty')
             return None
@@ -288,18 +309,18 @@ class EmployeeController:
         validator = Validators.clt_validator(clt)
         if validator:
             print(validator)
-        employee = self.dao.find_by_clt(clt)
-        if not employee:
+        exist_employee = self.dao.find_by_clt(clt)
+        if not exist_employee:
             return None
-        return employee
+        return exist_employee
         
     def register_employee(self, cpf: str, name: str, telephone: str, clt: str, position: str) -> str|None:
         validator = Validators.employee_validator(cpf, name, telephone, clt, position)
         if validator:
             print(validator)
             return None
-        employee = self.dao.find_by_clt(clt)
-        if employee:
+        exist_employee = self.dao.find_by_clt(clt)
+        if exist_employee:
             print('Employee already registered')
             return None
         self.dao.save_employee(Employee(Person(cpf, name, telephone), clt, position))
@@ -317,45 +338,58 @@ class EmployeeController:
                 f'Position: {employee.position}'
             )
         
-    def remove_employee(self, clt) -> None:
-        validator = Validators.employee_validator(clt=clt)
+    def remove_employee(self, clt: str) -> None:
+        validator = Validators.clt_validator(clt)
         if validator:
             print(validator)
             return None
-        employee = self.dao.find_by_clt(clt)
-        if not employee:
+        exist_employee = self.dao.find_by_clt(clt)
+        if not exist_employee:
             print('Employee not found')
             return None
         self.dao.delete_employee(clt)
         print('Employee removed sucessfully')
     
-    def change_employee(self, target_clt, new_cpf=None, new_name=None, new_telephone=None, new_clt=None, new_position=None):
-        target_validator = Validators.employee_validator(target_clt)
+    def change_employee(self, target_clt: str, new_cpf: str, new_name: str, new_telephone: str, new_clt: str, new_position: str):
+        target_validator = Validators.clt_validator(target_clt)
         if target_validator:
             print(target_validator)
             return None
-        new_validator = Validators.employee_validator(new_cpf, new_name, new_telephone, new_clt, new_position)
-        if new_validator:
-            print(new_validator)
-            return None
+        
         current_employee = self.dao.find_by_clt(target_clt)
         if not current_employee:
             print('Employee not found')
             return None
-        new_employee = self.dao.find_by_clt(new_clt)
-        if new_employee:
-            print('Employee already registered')
-            return None
         
-        self.dao.update_employee(target_clt, Employee(
-            Person(
-                new_cpf or current_employee.cpf, 
-                new_name or current_employee.name,
-                new_telephone or current_employee.telephone
-            ), 
+        new_validator = Validators.employee_validator(
+            new_cpf or current_employee.cpf,
+            new_name or current_employee.name,
+            new_telephone or current_employee.telephone,
             new_clt or current_employee.clt,
             new_position or current_employee.position
-        ))
+        )
+        if new_validator:
+            print(new_validator)
+            return None
+        
+        if new_clt:
+            new_employee = self.dao.find_by_clt(new_clt)
+            if new_employee:
+                print('Employee already registered')
+                return None
+        
+        self.dao.update_employee(
+            target_clt, 
+            Employee(
+                Person(
+                    new_cpf or current_employee.cpf, 
+                    new_name or current_employee.name,
+                    new_telephone or current_employee.telephone
+                ), 
+                new_clt or current_employee.clt,
+                new_position or current_employee.position
+            )
+        )
         print('Employee changed sucessfully')
         
 
@@ -364,7 +398,7 @@ class CustomerController:
         self.dao = CustomerDao()
         
     def register_customer(self, cpf: str, name: str, telephone: str, email: str, address: str) -> None:
-        validator = Validators.customer_validator(cpf, name, telephone, email, address)
+        validator = Validators.customer_validator(cpf, name, telephone, email or 'empty@empty.com', address)
         if validator:
             print(validator)
             return None
@@ -372,7 +406,7 @@ class CustomerController:
         if exist_customer:
             print('Customer already registered')
             return None
-        self.dao.save_customer(Customer(Person(cpf, name, telephone), email, address))
+        self.dao.save_customer(Customer(Person(cpf, name, telephone), email or 'empty@empty.com', address or 'Empty'))
         print('Customer registered sucessfully')
         
     def show_customers(self) -> None:
@@ -388,7 +422,7 @@ class CustomerController:
             )
     
     def remove_customer(self, cpf: str) -> None:
-        validator = Validators.customer_validator(cpf)
+        validator = Validators.cpf_validator(cpf)
         if validator:
             print(validator)
             return None
@@ -399,20 +433,26 @@ class CustomerController:
         self.dao.delete_customer(cpf)
         print('Customer removed sucessfully')
     
-    def change_customer(self, target_cpf:str, new_cpf:str=None, new_name:str=None, new_telephone:str=None, new_email:str=None, new_address:str=None) -> None:
-        target_cpf_validator = Validators.customer_validator(target_cpf)
+    def change_customer(self, target_cpf:str, new_cpf:str, new_name:str, new_telephone:str, new_email:str, new_address:str) -> None:
+        target_cpf_validator = Validators.cpf_validator(target_cpf)
         if target_cpf_validator:
             print(target_cpf_validator)
-            return None
-        
-        new_customer_validator = Validators.customer_validator(new_cpf or target_cpf, new_name, new_telephone, new_email, new_address)
-        if new_customer_validator:
-            print(new_customer_validator)
             return None
         
         exist_customer = self.dao.find_by_cpf(target_cpf)
         if not exist_customer:
             print('Customer not found')
+            return None
+        
+        new_customer_validator = Validators.customer_validator(
+            new_cpf or exist_customer.cpf,
+            new_name or exist_customer.name,
+            new_telephone or exist_customer.telephone,
+            new_email or exist_customer.email,
+            new_address or exist_customer.address
+        )
+        if new_customer_validator:
+            print(new_customer_validator)
             return None
         
         if new_cpf:
@@ -446,7 +486,7 @@ class SupplierController:
         if validator:
             print(validator)
             return None
-        exist_supplier = self.dao_supplier.find_by_clt(cnpj)
+        exist_supplier = self.dao_supplier.find_by_cnpj(cnpj)
         if exist_supplier:
             print('Supplier already registered')
             return None
@@ -454,21 +494,22 @@ class SupplierController:
         if not exist_category:
             print('Category not found')
             return None
-        self.dao_supplier.save_supplier(Supplier(cnpj, company_name, category, telephone))
+        self.dao_supplier.save_supplier(Supplier(cnpj, company_name, Category(category), telephone))
+        print('Supplier registered sucessfully')
         
     def show_supplier(self) -> None:
         suppliers = self.dao_supplier.get_all_supplier()
         for index, supplier in enumerate(suppliers):
             print(f'{5*'='} [{index}] {5*'='}')
             print(
-                f'CNPJ: {supplier.cnpj}'
-                f'Company Name: {supplier.company_name}'
-                f'Category: {supplier.category}'
-                f'Telephone: {supplier.telephone}'
+                f'CNPJ: {supplier.cnpj}\n'
+                f'Company Name: {supplier.company_name}\n'
+                f'Category: {supplier.category}\n'
+                f'Telephone: {supplier.telephone}\n'
             )
     
-    def remove_supplier(self, cnpj) -> None:
-        validator = Validators.supplier_validator(cnpj)
+    def remove_supplier(self, cnpj: str) -> None:
+        validator = Validators.cnpj_validator(cnpj)
         if validator:
             print(validator)
             return None
@@ -479,24 +520,46 @@ class SupplierController:
         self.dao_supplier.delete_supplier(cnpj)
         print('Supplier removed sucessfully')
         
-    def change_supplier(self, target_cnpj, new_cnpj, new_company_name, new_category, new_telephone) -> None:
-        target_validator = Validators.supplier_validator(target_cnpj)
+    def change_supplier(self, target_cnpj: str, new_cnpj: str, new_company_name: str, new_category: str, new_telephone: str) -> None:
+        target_validator = Validators.cnpj_validator(target_cnpj)
         if target_validator:
             print(target_validator)
             return None
-        new_supplier_validator = Validators.supplier_validator(new_cnpj, new_company_name, new_category, new_telephone)
-        if new_supplier_validator:
-            print(new_supplier_validator)
-            return None
+        
         exist_target_cnpj = self.dao_supplier.find_by_cnpj(target_cnpj)
         if not exist_target_cnpj:
             print('Supplier not found')
             return None
-        exist_new_cnpj = self.dao_supplier.find_by_cnpj(new_cnpj)
-        if exist_new_cnpj:
-            print('New CNPJ already registered')
-        exist_new_category = self.dao_category.find_by_name(new_category)
-        if not exist_new_category:
-            print('Category not found')
+        
+        new_supplier_validator = Validators.supplier_validator(
+            new_cnpj or exist_target_cnpj.cnpj,
+            new_company_name or exist_target_cnpj.company_name,
+            new_category or exist_target_cnpj.category,
+            new_telephone or exist_target_cnpj.telephone
+        )
+        if new_supplier_validator:
+            print(new_supplier_validator)
             return None
-        self.dao_supplier.update_supplier(target_cnpj, Supplier(new_cnpj, new_company_name, new_category, new_telephone))
+        
+        if new_cnpj:
+            exist_new_cnpj = self.dao_supplier.find_by_cnpj(new_cnpj)
+            if exist_new_cnpj:
+                print('New CNPJ already registered')
+                return None
+        
+        if new_category:
+            exist_new_category = self.dao_category.find_by_name(new_category)
+            if not exist_new_category:
+                print('Category not found')
+                return None
+        print(new_company_name)
+        self.dao_supplier.update_supplier(
+            target_cnpj, 
+            Supplier(
+                new_cnpj or exist_target_cnpj.cnpj,
+                new_company_name or exist_target_cnpj.company_name,
+                Category(new_category or exist_target_cnpj.category),
+                new_telephone or exist_target_cnpj.telephone
+            )
+        )
+        print('Supplier changed sucessfully')

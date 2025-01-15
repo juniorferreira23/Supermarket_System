@@ -21,7 +21,6 @@ def category_validator(category: str) -> str|None:
         return 'Category input is not string'
     if len(category) < 4:
         return 'Category input less than 4 characters'
-    return None
 
 
 def telephone_validator(telephone: str) -> str|None:
@@ -36,6 +35,20 @@ def clt_validator(clt: str) -> str|None:
         return 'Invalid clt type'
     elif len(clt) != 11:
         return 'Invalid clt'
+    
+
+def cpf_validator(cpf: str) -> str|None:
+    if type(cpf) != str:
+        return 'Invalid CPF type'
+    elif len(cpf) != 11:
+        return 'Invalid CPF'
+
+
+def cnpj_validator(cnpj: str) -> str|None:
+    if type(cnpj) != str:
+        return 'Invalid CNPJ type'
+    elif len(cnpj) != 14:
+        return 'Invalid CNPJ'
     
 
 def email_validator(email:str) -> bool:
@@ -70,11 +83,10 @@ def sale_validator(name_product: str, quantity: int) -> str|None:
     
 
 def person_validator(cpf:str, name:str, telephone:str) -> str|None:
-    if type(cpf) != str:
-        return 'Invalid CPF type'
-    elif len(cpf) != 11:
-        return 'Invalid CPF'
- 
+    validator = cpf_validator(cpf)
+    if validator:
+        return validator
+    
     validator = name_validator(name)
     if validator:
         return validator
@@ -113,11 +125,9 @@ def customer_validator(cpf:str, name:str, telephone:str, email:str, address:str)
 
 
 def supplier_validator(cnpj: str, company_name:str, category:str, telephone:str) -> str|None:
-    if type(cnpj) != str:
-        return 'Invalid CNPJ type'
-    elif len(cnpj) != 14:
-        print('Invalid CNPJ')
-        return None
+    validator = cnpj_validator(cnpj)
+    if validator:
+        return validator
     
     if type(company_name) != str:
         return 'Invalid Razão social type'
@@ -126,6 +136,28 @@ def supplier_validator(cnpj: str, company_name:str, category:str, telephone:str)
     if validator:
         return validator
     
-    validator = telephone_validator()
+    validator = telephone_validator(telephone)
     if validator:
         return validator
+
+
+def view_float_validator(prompt):
+    while True:
+        try:
+            value = input(prompt)
+            if not value:
+                return None
+            return float(value)
+        except ValueError as e:
+            print(f'Invalid input: {e}. Please enter a valid number float.')
+
+
+def view_int_validator(prompt):
+    while True:
+        try:
+            value = input(prompt)
+            if not value:
+                return None
+            return int(value)
+        except ValueError as e:
+            print(f'Invalid input: {e}. Please enter a valid number.')
