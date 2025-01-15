@@ -57,8 +57,8 @@ class Employee(Person):
         
 
 class Supplier:
-    def __init__(self, cnpj: str, razao_social: str, category: Category, telephone: str):
+    def __init__(self, cnpj: str, company_name: str, category: Category, telephone: str):
         self.cnpj = cnpj
-        self.razao_social = razao_social
+        self.company_name = company_name
         self.category = category
         self.telephone = telephone

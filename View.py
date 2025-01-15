@@ -1,4 +1,4 @@
-from Controller import CategoryController, StockController, SaleController, CustomerController, EmployeeController
+from Controller import CategoryController, StockController, SaleController, CustomerController, EmployeeController, SupplierController
 
 def start_database():
     ...
@@ -140,7 +140,7 @@ def sale_system():
                 quantity = int(input('Enter quantity: '))
                 dao.register_sale(product, quantity)
             case 2:
-                dao.show_current_sale()
+                dao.show_sale()
             case 3:
                 product = input('Enter product: ')
                 dao.remove_product_sale(product)
@@ -241,8 +241,76 @@ def employee_system():
                 break
             case _:
                 continue
-
             
+            
+def supplier_system():
+    dao = SupplierController()
+    while True:
+        print('')
+        print(
+            ''
+            '[1] Register Supplier\n'
+            '[2] Show Suppliers\n'
+            '[3] Remove Supplier\n'
+            '[4] Change Supplier\n'
+            '[5] Back'
+        )
+        option = input('Select option: ')
+        if not option:
+            continue
+        elif option.isdigit():
+            option = int(option)
+        match option:
+            case 1:
+                cnpj = input('Enter CNPJ: ')
+                company_name = input('Enter Company Name: ')
+                category = input('Enter Category: ')
+                telephone = input('Enter Telephone: ')
+                dao.register_supplier(cnpj, company_name, category, telephone)
+            case 2:
+                dao.show_supplier()
+            case 3:
+                cnpj = input('Enter CNPJ of the supplier you want to remove: ')
+                dao.remove_supplier(cnpj)
+            case 4:
+                target_cnpj = input('Enter CNPJ: ')
+                new_cnpj = input('Enter CNPJ: ')
+                new_company_name = input('Enter Company Name: ')
+                new_category = input('Enter Category: ')
+                new_telephone = input('Enter Telephone: ')
+                dao.change_supplier(target_cnpj, new_cnpj, new_company_name, new_category, new_telephone)
+            case 5:
+                break
+            case _:
+                continue
+            
+            
+def report_system():
+    dao = SaleController()
+    while True:
+        print('')
+        print(
+            ''
+            '[1] Show Report Sales\n'
+            '[2] Show Best Selling Product Report\n'
+            '[3] Back'
+        )
+        option = input('Select option: ')
+        if not option:
+            continue
+        elif option.isdigit():
+            option = int(option)
+        match option:
+            case 1:
+                dao.show_sale()
+            case 2:
+                dao.best_selling_products_report()
+            case 3:
+                break
+            case _:
+                continue
+                
+
 def main_system():
     while True:
         print('')
@@ -271,7 +339,7 @@ def main_system():
             case 5:
                 employee_system()
             case 6:
-                ...
+                supplier_system()
             case 7:
                 ...
             case 8:

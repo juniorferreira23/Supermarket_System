@@ -36,16 +36,16 @@ class CategoryController:
         self.dao.delete_category(category)
         print('Category removed sucessfully')
     
-    def change_category(self, current_category: str, new_category: str) -> None:
-        current_validator = Validators.category_validator(current_category)
-        change_validator = Validators.category_validator(new_category)        
-        if current_validator:
-            print(f'The value of change {current_category}')
+    def change_category(self, target_category: str, new_category: str) -> None:
+        target_validator = Validators.category_validator(target_category)
+        if target_validator:
+            print(f'The value of change {target_category}')
             return None
-        elif change_validator:
-            print(f'The new change value {change_validator}')
+        new_validator = Validators.category_validator(new_category)
+        if new_validator:
+            print(f'The new change value {new_validator}')
             return None
-        exist_current_category = self.dao.find_by_name(current_category)
+        exist_current_category = self.dao.find_by_name(target_category)
         if not exist_current_category:
             print('Current category not found')
             return None
@@ -53,8 +53,9 @@ class CategoryController:
         if exist_new_category:
             print('Category already registered')
             return None
-        self.dao.update_category(current_category, Category(new_category))
+        self.dao.update_category(target_category, Category(new_category))
         print('Category changed sucessfully')
+
 
 class StockController:
     def __init__(self):
@@ -90,7 +91,7 @@ class StockController:
             )
             
     def remove_stock(self, name_product: str):
-        validator = Validators.product_validator(name_product)
+        validator = Validators.name_product_validator(name_product)
         if validator:
             print(validator)
             return None
@@ -102,19 +103,25 @@ class StockController:
         print('Stock removed sucessfully')
         
     def change_stock(self, target_product: str, new_product:str=None, new_category:str=None, new_price:float=None, new_quantity:int=None):
-        current_validator = Validators.product_validator(target_product)
-        if current_validator:
+        target_validator = Validators.name_product_validator(target_product)
+        if target_validator:
             print(f'The value of change {target_product}')
-            return None
-        
-        new_validator = Validators.product_validator(new_category, new_category, new_price, new_quantity)
-        if new_validator:
-            print(f'The new change value {target_product}')
             return None
         
         exist_curret_product = self.dao_stock.find_by_product(target_product)
         if not exist_curret_product:
             print('Stock not found')
+            return None
+        
+        new_validator = Validators.product_validator(
+            new_product or exist_curret_product.product.name,
+            new_category or exist_curret_product.product.category,
+            new_price or exist_curret_product.product.price,
+            new_quantity or exist_curret_product.quantity
+        )
+        
+        if new_validator:
+            print(f'The new change value {target_product}')
             return None
         
         exist_new_product = self.dao_stock.find_by_product(new_product)
@@ -150,7 +157,7 @@ class SaleController:
         self.total = round(total, 2)
         
     def register_sale(self, name_product: str, quantity: int):
-        validator = Validators.product_validator(name_product, quantity=quantity)
+        validator = Validators.sale_validator(name_product, quantity)
         if validator:
             print(validator)
             return None
@@ -168,7 +175,7 @@ class SaleController:
         print(f'Current value sale [{self.total}]')
         
         
-    def show_current_sale(self):
+    def show_sale(self):
         for index, product in enumerate(self.list_product):
             print(f'{5*'='} [{index}] {5*'='}')
             print(
@@ -176,27 +183,17 @@ class SaleController:
                 f'Price: {product.product.price}\n'
                 f'Quantity: {product.quantity}'
             )
-
-    def show_sales(self):
-        sales = self.dao_sale.get_all_sales()
-        
-        for index, sale in enumerate(sales):
-            print(f'{5*'='} [{index}] {5*'='}')
-            print(f'Registration: {sale.registration}')
-            for i, product in enumerate(sale.sold_products):
-                print(f'{5*'-'} [{i}] {5*'-'}')
-                print(
-                    f'Product: {product.product.name}\n'
-                    f'Price: {product.product.price}'
-                )
-            print(
-                f'Operator: {sale.operator}\n'
-                f'Customer: {sale.customer}\n'
-                f'Date: {sale.date}\n'
-                f'Total: {sale.total}'
-            )
             
     def finish_sale(self, operator: str, customer: str):
+        validator = Validators.name_validator(operator)
+        if validator:
+            print(validator)
+            return None
+        validator = Validators.name_validator(customer)
+        if validator:
+            print(validator)
+            return None
+        
         self.dao_sale.save_sale(Sale(
             sold_products=self.list_product, operator=operator, customer=customer, total=self.total
         ))
@@ -213,6 +210,10 @@ class SaleController:
         print('Sale cancelled')
         
     def remove_product_sale(self, name_product: str):
+        validator = Validators.name_product_validator(name_product)
+        if validator:
+            print(validator)
+            return None
         if not self.list_product:
             print('The product list is empty')
             return None
@@ -239,6 +240,44 @@ class SaleController:
         ))
         self.calculate_total()
         print('Changed product quantity')
+        
+    def report_sales(self):
+        sales = self.dao_sale.get_all_sales()
+        
+        for index, sale in enumerate(sales):
+            print(f'{5*'='} [{index}] {5*'='}')
+            print(f'Registration: {sale.registration}')
+            for i, product in enumerate(sale.sold_products):
+                print(f'{5*'-'} [{i}] {5*'-'}')
+                print(
+                    f'Product: {product.product.name}\n'
+                    f'Price: {product.product.price}'
+                )
+            print(
+                f'Operator: {sale.operator}\n'
+                f'Customer: {sale.customer}\n'
+                f'Date: {sale.date}\n'
+                f'Total: {sale.total}'
+            )
+        
+    def best_selling_products_report(self):
+        sales = self.dao_sale.get_all_sales()
+        ordered_products = []
+        for sale in sales:
+            for item_sale in sale.sold_products:
+                if not item_sale.product.name in ordered_products:
+                    ordered_products.append([item_sale.product.name, item_sale.quantity])
+                else:
+                    for product in ordered_products:
+                        if product[0] == item_sale.product.name:
+                            product[1] += item_sale.quantity
+        
+        for index, product in enumerate(ordered_products):
+            print(f'{5*'='} [{index}] {5*'='}')
+            print(
+                f'Product: {product[0]}'
+                f'Quantity: {product[1]}'
+            )
 
         
 class EmployeeController:
@@ -246,6 +285,9 @@ class EmployeeController:
         self.dao = EmployeeDao()
         
     def check_employee(self, clt) -> Employee|None:
+        validator = Validators.clt_validator(clt)
+        if validator:
+            print(validator)
         employee = self.dao.find_by_clt(clt)
         if not employee:
             return None
@@ -396,8 +438,65 @@ class CustomerController:
         
 class SupplierController:
     def __init__(self):
-        self.dao = SupplierDao()
+        self.dao_supplier = SupplierDao()
+        self.dao_category = CategoryDao()
         
-    def register_supplier(self, cnpj: str, razao_social: str, category: str, telephone: str) -> None:
-        validator = Validators.va
-        self.dao.save_supplier(Supplier())
+    def register_supplier(self, cnpj: str, company_name: str, category: str, telephone: str) -> None:
+        validator = Validators.supplier_validator(cnpj, company_name, category, telephone)
+        if validator:
+            print(validator)
+            return None
+        exist_supplier = self.dao_supplier.find_by_clt(cnpj)
+        if exist_supplier:
+            print('Supplier already registered')
+            return None
+        exist_category = self.dao_category.find_by_name(category)
+        if not exist_category:
+            print('Category not found')
+            return None
+        self.dao_supplier.save_supplier(Supplier(cnpj, company_name, category, telephone))
+        
+    def show_supplier(self) -> None:
+        suppliers = self.dao_supplier.get_all_supplier()
+        for index, supplier in enumerate(suppliers):
+            print(f'{5*'='} [{index}] {5*'='}')
+            print(
+                f'CNPJ: {supplier.cnpj}'
+                f'Company Name: {supplier.company_name}'
+                f'Category: {supplier.category}'
+                f'Telephone: {supplier.telephone}'
+            )
+    
+    def remove_supplier(self, cnpj) -> None:
+        validator = Validators.supplier_validator(cnpj)
+        if validator:
+            print(validator)
+            return None
+        exist_cnpj = self.dao_supplier.find_by_cnpj(cnpj)
+        if not exist_cnpj:
+            print('Supplier not found')
+            return None
+        self.dao_supplier.delete_supplier(cnpj)
+        print('Supplier removed sucessfully')
+        
+    def change_supplier(self, target_cnpj, new_cnpj, new_company_name, new_category, new_telephone) -> None:
+        target_validator = Validators.supplier_validator(target_cnpj)
+        if target_validator:
+            print(target_validator)
+            return None
+        new_supplier_validator = Validators.supplier_validator(new_cnpj, new_company_name, new_category, new_telephone)
+        if new_supplier_validator:
+            print(new_supplier_validator)
+            return None
+        exist_target_cnpj = self.dao_supplier.find_by_cnpj(target_cnpj)
+        if not exist_target_cnpj:
+            print('Supplier not found')
+            return None
+        exist_new_cnpj = self.dao_supplier.find_by_cnpj(new_cnpj)
+        if exist_new_cnpj:
+            print('New CNPJ already registered')
+        exist_new_category = self.dao_category.find_by_name(new_category)
+        if not exist_new_category:
+            print('Category not found')
+            return None
+        self.dao_supplier.update_supplier(target_cnpj, Supplier(new_cnpj, new_company_name, new_category, new_telephone))

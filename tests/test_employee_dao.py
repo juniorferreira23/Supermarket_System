@@ -48,6 +48,22 @@ class TestEmployeeDao(unittest.TestCase):
             f'{data[1].cpf}|{data[1].name}|{data[1].telephone}|{data[1].clt}|{data[1].position}',
             f'{employees[1].cpf}|{employees[1].name}|{employees[1].telephone}|{employees[1].clt}|{employees[1].position}'
         )
+        
+    def test_find_by_clt(self):
+        employees = [
+            Employee(Person('12312312312', 'Junior ferreira', '81988884444'), '123', 'teste'),
+            Employee(Person('12312345621', 'lucas ferreira', '81988883333'), '456', 'teste')
+        ]
+        
+        for employee in employees:
+            self.dao.save_employee(employee)
+            
+        data = self.dao.find_by_clt(employees[0].clt)
+        self.assertEqual(employees[0].name, data.name)
+        self.assertEqual(
+            f'{data.cpf}|{data.name}|{data.telephone}|{data.clt}|{data.position}',
+            f'{employees[0].cpf}|{employees[0].name}|{employees[0].telephone}|{employees[0].clt}|{employees[0].position}'
+        )
     
     def test_delete_employee(self):
         employees = [

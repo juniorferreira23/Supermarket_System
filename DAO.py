@@ -325,7 +325,7 @@ class SupplierDao(Dao):
         with open(Config.DB_SUPPLIER, 'a') as arq:
             arq.write(
                 supplier.cnpj + '|' +
-                supplier.razao_social + '|' + 
+                supplier.company_name + '|' + 
                 supplier.category.name + '|' +
                 supplier.telephone
             )
@@ -334,6 +334,14 @@ class SupplierDao(Dao):
     def get_all_supplier(self) -> list[Supplier]:
         suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
         return list(map(lambda x: Supplier(x[0], x[1], x[2], x[3]), suppliers))
+    
+    def find_by_cnpj(self, cnpj) -> Supplier:
+        suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
+        exist_supplier = any(supplier[0] == cnpj for supplier in suppliers)
+        if not exist_supplier:
+            return None
+        supplier = list(filter(lambda x: x[0] == cnpj, suppliers))[0]
+        return Supplier(supplier[0],supplier[1], supplier[2], supplier[3])
     
     def delete_supplier(self, cnpj) -> None:
         suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
@@ -352,7 +360,7 @@ class SupplierDao(Dao):
     def update_supplier(self, cnpj, new_supplier: Supplier) -> None:
         suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
         supplier = list(map(lambda x: [new_supplier.cnpj,
-                                       new_supplier.razao_social,
+                                       new_supplier.company_name,
                                        new_supplier.category,
                                        new_supplier.telephone] if(x[0] == cnpj) else(x), suppliers))
         

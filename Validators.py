@@ -1,100 +1,131 @@
-from Model import Category, Product, Stock, Sale, SaleItem, Customer, Person, Employee, Supplier
 import re
 
+def name_product_validator(product: str) -> str|None:
+    if type(product) != str:
+            return 'Name input is not string'
+    elif len(product) < 3:
+        return 'Name input less than 3 caracters' 
+    
 
-def category_validator(category) -> str|None:
+def name_validator(name: str) -> str|None:
+    if type(name) != str:
+            return 'Invalid name type'
+    elif len(name) < 8:
+        return 'Invalid name'
+    elif '' not in name:
+        return 'First and last name required'
+
+
+def category_validator(category: str) -> str|None:
     if type(category) != str:
         return 'Category input is not string'
     if len(category) < 4:
         return 'Category input less than 4 characters'
     return None
 
-def product_validator(name_product, category=None, price=None, quantity=None) -> str|None:
-    if type(name_product) != str:
-            return 'Name input is not string'
-    elif len(name_product) < 3:
-        return 'Name input less than 4 caracters'        
-    
-    if category:
-        validator = category_validator(category)
-        if validator:
-            return validator
-    
-    if price:
-        if type(price) != float:
-            return 'Price input is not float'
-    
-    if quantity:
-        if type(quantity) != int:
-            return 'Quantity input is not int'
-    
-    return None
+
+def telephone_validator(telephone: str) -> str|None:
+    if type(telephone) != str:
+        return 'Invalid telephone type'
+    if len(telephone) != 11:
+        return 'Invalid telephone'
 
 
-def person_validator(cpf, name=None, telephone=None) -> str|None:
+def clt_validator(clt: str) -> str|None:
+    if type(clt) != str:
+        return 'Invalid clt type'
+    elif len(clt) != 11:
+        return 'Invalid clt'
+    
+
+def email_validator(email:str) -> bool:
+        regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+        return re.match(regex, email) is not None
+
+
+def product_validator(name_product:str, category:str, price:float, quantity:int) -> str|None:
+    validator = name_product_validator(name_product)
+    if validator:
+        return validator
+    
+    validator = category_validator(category)
+    if validator:
+        return validator
+    
+    if type(price) != float:
+        return 'Price input is not float'
+    
+    if type(quantity) != int:
+        return 'Quantity input is not int'
+        
+
+def sale_validator(name_product: str, quantity: int) -> str|None:
+    validator = name_product_validator(name_product)
+    if validator:
+        return validator
+    
+    if type(quantity) != int:
+        return 'Quantity input is not int'
+    
+    
+
+def person_validator(cpf:str, name:str, telephone:str) -> str|None:
     if type(cpf) != str:
         return 'Invalid CPF type'
     elif len(cpf) != 11:
         return 'Invalid CPF'
+ 
+    validator = name_validator(name)
+    if validator:
+        return validator
     
-    if name:
-        if type(name) != str:
-            return 'Invalid name type'
-        elif len(name) < 8:
-            return 'Invalid name'
-        elif '' not in name:
-            return 'First and last name required'
-
-    if telephone:
-        if type(telephone) != str:
-            return 'Invalid telephone type'
-        if len(telephone) != 11:
-            return 'Invalid telephone'
+    validator = telephone_validator(telephone)
+    if validator:
+        return validator
         
 
-def employee_validator(cpf=None, name=None, telephone=None, clt=None, postion=None) -> str|None:
-    if cpf and name:
-        validator = person_validator(cpf, name, telephone)
-        if validator:
-            return validator
-    if clt:
-        if type(clt) != str:
-            return 'Invalid clt type'
-        elif len(clt) != 11:
-            return 'Invalid clt'
-    if postion:
-        if type(postion) != str:
-            return 'Invalid position type'
-    return None
-
-
-def customer_validator(cpf, name=None, telephone=None, email=None, address=None) -> None:
-    def email_validator(email):
-        regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
-        return re.match(regex, email) is not None
-    
+def employee_validator(cpf:str, name:str, telephone:str, clt:str, postion:str) -> str|None:
     validator = person_validator(cpf, name, telephone)
     if validator:
         return validator
-    if email:
-        if type(email) != str:
-            return 'Invalid email type'
-        elif not email_validator(email):
-            return 'Invalid email'
-    if address:
-        if type(address) != str:
-            return 'Invalid address type'
     
-    return None
+    validator = clt_validator(clt)
+    if validator:
+        return validator
+    
+    if type(postion) != str:
+        return 'Invalid position type'
 
 
-def supplier_validator(cnpj: str, razao_social:str=None, category:Category=None, telephone:str=None) -> str|None:
+
+def customer_validator(cpf:str, name:str, telephone:str, email:str, address:str) -> str|None:
+    validator = person_validator(cpf, name, telephone)
+    if validator:
+        return validator
+
+    if type(email) != str:
+        return 'Invalid email type'
+    elif not email_validator(email):
+        return 'Invalid email'
+    
+    if type(address) != str:
+        return 'Invalid address type'
+
+
+def supplier_validator(cnpj: str, company_name:str, category:str, telephone:str) -> str|None:
     if type(cnpj) != str:
-        print('Invalid CNPJ type')
-        return None
+        return 'Invalid CNPJ type'
     elif len(cnpj) != 14:
         print('Invalid CNPJ')
         return None
     
-    if razao_social:
-        ...
+    if type(company_name) != str:
+        return 'Invalid Razão social type'
+    
+    validator = category_validator(category)
+    if validator:
+        return validator
+    
+    validator = telephone_validator()
+    if validator:
+        return validator

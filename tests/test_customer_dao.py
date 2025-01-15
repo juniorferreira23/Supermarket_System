@@ -48,6 +48,21 @@ class TestCustomerDao(unittest.TestCase):
             f'{customers[1].cpf}|{customers[1].name}|{customers[1].telephone}|{customers[1].email}|{customers[1].address}',
         )
         
+    def test_find_by_cpf_customer(self):
+        customers = [
+            Customer(Person('12312312312', 'junior ferreira', '81988887777'), 'junior@email.com', 'Av. Major'),
+            Customer(Person('45645645656', 'joao ferreira', '81988886666'), 'joao@email.com', 'Av. Almirante')
+        ]
+        for customer in customers:
+            self.dao.save_customer(customer)
+            
+        data = self.dao.find_by_cpf(customers[0].cpf)
+        self.assertEqual(
+            f'{data.cpf}|{data.name}|{data.telephone}|{data.email}|{data.address}',
+            f'{customers[0].cpf}|{customers[0].name}|{customers[0].telephone}|{customers[0].email}|{customers[0].address}'
+        )
+
+        
     def test_delete_customer(self):
         customers = [
             Customer(Person('12312312312', 'junior ferreira', '81988887777'), 'junior@email.com', 'Av. Major'),
