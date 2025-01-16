@@ -192,7 +192,6 @@ class SaleDao(Dao):
             x[3],
             datetime.strptime(x[4], "%d/%m/%Y"),
         ), sales))
-        print(sales[0].date)
         return sales
 
 

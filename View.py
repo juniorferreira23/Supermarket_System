@@ -270,11 +270,11 @@ def employee_system():
                 dao.remove_employee(clt)
             case 4:
                 clt = input('Enter CLT: ')
-                new_cpf = input('Enter new CPF or leave it blank to keep the current data:: ')
-                new_name = input('Enter new Name or leave it blank to keep the current data:: ')
-                new_telephone = input('Enter new Telephone or leave it blank to keep the current data:: ')
+                new_cpf = input('Enter new CPF or leave it blank to keep the current data: ')
+                new_name = input('Enter new Name or leave it blank to keep the current data: ')
+                new_telephone = input('Enter new Telephone or leave it blank to keep the current data: ')
                 new_clt = input('Enter new CLT or leave it blank to keep the current data:: ')
-                new_position = input('Enter new Position or leave it blank to keep the current data:: ')
+                new_position = input('Enter new Position or leave it blank to keep the current data: ')
                 dao.change_employee(clt, new_cpf, new_name, new_telephone, new_clt, new_position)
             case 5:
                 break
