@@ -148,10 +148,13 @@ class StockDao(Dao):
     
     def update_stock(self, target_name, new_stock:Stock) -> None:
         stocks = FileUtils.read_file(Config.DB_STOCK)
-        stocks = list(map(lambda x: [new_stock.product.name,
-                                     new_stock.product.category,
-                                     str(new_stock.product.price),
-                                     str(new_stock.quantity)] if(x[0] == target_name) else(x), stocks))
+        stocks = list(map(lambda x: [
+                new_stock.product.name,
+                new_stock.product.category,
+                str(new_stock.product.price),
+                str(new_stock.quantity)
+            ] if(x[0] == target_name) else(x), stocks)
+        )
         with open(Config.DB_STOCK, 'w') as arq:
             for stock in stocks:
                 arq.write(
@@ -181,12 +184,15 @@ class SaleDao(Dao):
     def get_all_sales(self) -> list[Sale]:
         sales = FileUtils.read_file(Config.DB_SALE)
         sales = list(map(lambda x: [x[0], literal_eval(x[1]), x[2], x[3], x[4], x[5]], sales))
-        sales = list(map(lambda x: Sale(x[0], 
-                                        list(map(lambda y: SaleItem(Product(y[0], y[1], float(y[2])), int(y[3])), x[1])),
-                                        x[2],
-                                        x[3],
-                                        datetime.strptime(x[4], "%Y-%m-%d %H:%M:%S.%f"),
-                                        float(x[5])), sales))
+        sales = list(map(lambda x: Sale(
+            list(map(lambda y: SaleItem(Product(y[0], y[1], float(y[2])), int(y[3])), x[1])),
+            x[2],
+            float(x[5]),
+            x[0], 
+            x[3],
+            datetime.strptime(x[4], "%d/%m/%Y"),
+        ), sales))
+        print(sales[0].date)
         return sales
 
 
@@ -234,8 +240,7 @@ class CustomerDao(Dao):
 
     def update_customer(self, target_cpf, new_customer: Customer) -> None:
         customers = FileUtils.read_file(Config.DB_CUSTOMER)
-        customers = list(map(lambda x:
-            [
+        customers = list(map(lambda x:[
                 new_customer.cpf,
                 new_customer.name,
                 new_customer.telephone,
@@ -300,11 +305,14 @@ class EmployeeDao(Dao):
     
     def update_employee(self, clt, new_employee: Employee) -> None:
         employees = FileUtils.read_file(Config.DB_EMPLOYEE)
-        employees = list(map(lambda x: [new_employee.cpf,
-                                        new_employee.name,
-                                        new_employee.telephone,
-                                        new_employee.clt,
-                                        new_employee.position] if(x[3] == clt) else(x), employees))
+        employees = list(map(lambda x: [
+                new_employee.cpf,
+                new_employee.name,
+                new_employee.telephone,
+                new_employee.clt,
+                new_employee.position
+            ] if(x[3] == clt) else(x), employees)
+        )
         
         with open(Config.DB_EMPLOYEE, 'w') as arq:
             for employee in employees:
@@ -345,7 +353,7 @@ class SupplierDao(Dao):
     
     def delete_supplier(self, cnpj) -> None:
         suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
-        supplier = list(filter(lambda x: x[0] != cnpj, suppliers))
+        suppliers = list(filter(lambda x: x[0] != cnpj, suppliers))
         
         with open(Config.DB_SUPPLIER, 'w') as arq:
             for supplier in suppliers:
@@ -359,10 +367,13 @@ class SupplierDao(Dao):
         
     def update_supplier(self, cnpj, new_supplier: Supplier) -> None:
         suppliers = FileUtils.read_file(Config.DB_SUPPLIER)
-        supplier = list(map(lambda x: [new_supplier.cnpj,
-                                       new_supplier.company_name,
-                                       new_supplier.category.name,
-                                       new_supplier.telephone] if(x[0] == cnpj) else(x), suppliers))
+        suppliers = list(map(lambda x: [
+                new_supplier.cnpj,
+                new_supplier.company_name,
+                new_supplier.category.name,
+                new_supplier.telephone
+            ] if(x[0] == cnpj) else(x), suppliers)
+        )
         
         with open(Config.DB_SUPPLIER, 'w') as arq:
             for supplier in suppliers:

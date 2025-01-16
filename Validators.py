@@ -1,4 +1,6 @@
 import re
+from datetime import datetime
+
 
 def name_product_validator(product: str) -> str|None:
     if type(product) != str:
@@ -80,6 +82,8 @@ def sale_validator(name_product: str, quantity: int) -> str|None:
     if type(quantity) != int:
         return 'Quantity input is not int'
     
+    if quantity < 0:
+        return 'Quantity cannot be negative'
     
 
 def person_validator(cpf:str, name:str, telephone:str) -> str|None:
@@ -161,3 +165,13 @@ def view_int_validator(prompt):
             return int(value)
         except ValueError as e:
             print(f'Invalid input: {e}. Please enter a valid number.')
+
+
+def view_date_validator(mensagem, formato="%d/%m/%Y"):
+    while True:
+        entrada = input(mensagem)
+        try:
+            data = datetime.strptime(entrada, formato)
+            return data
+        except ValueError:
+            print(f"Data inválida. Certifique-se de usar o formato {formato}.")

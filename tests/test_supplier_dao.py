@@ -73,10 +73,6 @@ class TestSupplierDao(unittest.TestCase):
         
         data = FileUtils().read_file(Config.DB_SUPPLIER)
         self.assertEqual(
-            f'{suppliers[0].cnpj}|{suppliers[0].company_name}|{suppliers[0].category.name}',
-            f'{data[0][0]}|{data[0][1]}|{data[0][2]}'
-        )
-        self.assertEqual(
             f'{suppliers[1].cnpj}|{suppliers[1].company_name}|{suppliers[1].category.name}',
-            f'{data[1][0]}|{data[1][1]}|{data[1][2]}'
+            f'{data[0][0]}|{data[0][1]}|{data[0][2]}'
         )

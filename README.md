@@ -4,6 +4,9 @@
 ## 📖 Description
 The **Supermarket System** is a simulation of a supermarket management application. It allows for the registration and management of products, stock, sales, customers, and employees, providing CRUD (Create, Read, Update, Delete) operations for all these entities.
 
+## Goal
+The goal of the project was to practice the solid base of python and its fundamentals, along with file manipulation.
+
 ---
 
 ## 💻 Technologies
@@ -34,7 +37,7 @@ git clone https://github.com/juniorferreira23/Supermarket_System.git
 
 ### Run the Application
 ```bash
-python3 main.py
+python3 View.py
 ```
 
 ## Tests

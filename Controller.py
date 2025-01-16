@@ -16,7 +16,7 @@ class CategoryController:
             print('Category already registered')
             return None
         self.dao.save_category(Category(category))
-        print('Category registered successfully')
+        print('Category registered sucessfully')
     
     def show_categories(self) -> None:
         categories = self.dao.get_all_categories()
@@ -39,7 +39,7 @@ class CategoryController:
     def change_category(self, target_category: str, new_category: str) -> None:
         target_validator = Validators.category_validator(target_category)
         if target_validator:
-            print(f'The value of change {target_category}')
+            print(f'Invalid value for current category: {target_category}')
             return None
         new_validator = Validators.category_validator(new_category)
         if new_validator:
@@ -82,7 +82,7 @@ class StockController:
         stocks = self.dao_stock.get_all_stocks()
         
         for index, stock in enumerate(stocks):
-            print(f'{5*'='} [{index}] {5*'='}')
+            print(f"{5*'='} [{index}] {5*'='}")
             print(
                 f'Product Name: {stock.product.name}\n'
                 f'Category: {stock.product.category}\n'
@@ -173,15 +173,16 @@ class SaleController:
         self.list_product.append(SaleItem(data_product.product, quantity))
         print('Product registered upon purchase')
         self.calculate_total()
-        print(f'Current value sale [{self.total}]')
+        print(f'Current value sale [${self.total}]')
         
     def show_sale(self):
         for index, product in enumerate(self.list_product):
-            print(f'{5*'='} [{index}] {5*'='}')
+            print(f"{5*'='} [{index}] {5*'='}")
             print(
                 f'Product: {product.product.name}\n'
                 f'Price: {product.product.price}\n'
-                f'Quantity: {product.quantity}'
+                f'Quantity: {product.quantity}\n'
+                f'Total Product: ${round(product.product.price * product.quantity, 2)}'
             )
             
     def finish_sale(self, operator: str, customer: str=None):
@@ -210,13 +211,19 @@ class SaleController:
         else:
             customer = 'Empty'
         
-        
         self.dao_sale.save_sale(Sale(
             sold_products=self.list_product, operator=operator, customer=customer, total=self.total
         ))
         for item in self.list_product:
             current_product = self.dao_stock.find_by_product(item.product.name)
-            self.dao_stock.update_stock(current_product.product.name, Stock(Product(current_product.product.name, current_product.product.category, current_product.product.price), current_product.quantity - item.quantity))
+            self.dao_stock.update_stock(
+                current_product.product.name,
+                Stock(
+                    current_product.product,
+                    current_product.quantity - item.quantity
+                )
+            )
+            
         self.list_product = []
         self.total = 0
         print('Sale finalized')
@@ -241,9 +248,10 @@ class SaleController:
         self.list_product = list(filter(lambda x: x.product.name != name_product, self.list_product))
         self.calculate_total()
         print('Product removed sucessfully')
+        print(f'Current value sale [${self.total}]')
         
-    def change_product_sale(self, name_product: str, new_quantity: str):
-        validator = Validators.name_product_validator(name_product)
+    def change_product_sale(self, name_product: str, new_quantity: int):
+        validator = Validators.sale_validator(name_product, new_quantity)
         if validator:
             print(validator)
             return None
@@ -261,18 +269,20 @@ class SaleController:
         ))
         self.calculate_total()
         print('Changed product quantity')
+        print(f'Current value sale [${self.total}]')
         
-    def report_sales(self):
+    def report_sales(self, start_date, end_date):
         sales = self.dao_sale.get_all_sales()
+        sales = list(filter(lambda x: x if(x.date >= start_date and x.date <= end_date) else(), sales))
         
         for index, sale in enumerate(sales):
-            print(f'{5*'='} [{index}] {5*'='}')
+            print(f"{5*'='} [{index}] {5*'='}")
             print(f'Registration: {sale.registration}')
-            for i, product in enumerate(sale.sold_products):
+            for i, item in enumerate(sale.sold_products):
                 print(f'{5*'-'} [{i}] {5*'-'}')
                 print(
-                    f'Product: {product.product.name}\n'
-                    f'Price: {product.product.price}'
+                    f'Product: {item.product.name}\n'
+                    f'Price: {item.product.price}'
                 )
             print(
                 f'Operator: {sale.operator}\n'
@@ -286,7 +296,8 @@ class SaleController:
         ordered_products = []
         for sale in sales:
             for item_sale in sale.sold_products:
-                if not item_sale.product.name in ordered_products:
+                exist_item = any(item_sale.product.name in item for item in ordered_products)
+                if not exist_item:
                     ordered_products.append([item_sale.product.name, item_sale.quantity])
                 else:
                     for product in ordered_products:
@@ -294,9 +305,9 @@ class SaleController:
                             product[1] += item_sale.quantity
         
         for index, product in enumerate(ordered_products):
-            print(f'{5*'='} [{index}] {5*'='}')
+            print(f"{5*'='} [{index}] {5*'='}")
             print(
-                f'Product: {product[0]}'
+                f'Product: {product[0]}\n'
                 f'Quantity: {product[1]}'
             )
 
@@ -311,6 +322,7 @@ class EmployeeController:
             print(validator)
         exist_employee = self.dao.find_by_clt(clt)
         if not exist_employee:
+            print('Employee not found')
             return None
         return exist_employee
         
@@ -329,7 +341,7 @@ class EmployeeController:
     def show_employee(self) -> None:
         employees = self.dao.get_all_employee()
         for index, employee in enumerate(employees):
-            print(f'{5*'='} [{index}] {5*'='}')
+            print(f"{5*'='} [{index}] {5*'='}")
             print(
                 f'CLT: {employee.clt}\n'
                 f'Name: {employee.name}\n'
@@ -412,7 +424,7 @@ class CustomerController:
     def show_customers(self) -> None:
         customers = self.dao.get_all_customer()
         for index, customer in enumerate(customers):
-            print(f'{5*'='} [{index}] {5*'='}')
+            print(f"{5*'='} [{index}] {5*'='}")
             print(
                 f'CPF: {customer.cpf}\n'
                 f'Name: {customer.name}\n'
@@ -500,7 +512,7 @@ class SupplierController:
     def show_supplier(self) -> None:
         suppliers = self.dao_supplier.get_all_supplier()
         for index, supplier in enumerate(suppliers):
-            print(f'{5*'='} [{index}] {5*'='}')
+            print(f"{5*'='} [{index}] {5*'='}")
             print(
                 f'CNPJ: {supplier.cnpj}\n'
                 f'Company Name: {supplier.company_name}\n'
@@ -552,6 +564,7 @@ class SupplierController:
             if not exist_new_category:
                 print('Category not found')
                 return None
+            
         print(new_company_name)
         self.dao_supplier.update_supplier(
             target_cnpj, 
@@ -563,3 +576,4 @@ class SupplierController:
             )
         )
         print('Supplier changed sucessfully')
+         

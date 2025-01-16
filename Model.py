@@ -31,7 +31,7 @@ class Sale:
         self.sold_products = sold_products
         self.operator = operator
         self.customer = customer
-        self.date = date or datetime.now()
+        self.date = date or datetime.now().strftime('%d/%m/%Y')
         self.total = total
 
 
